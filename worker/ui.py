@@ -98,7 +98,6 @@ class TerminalUI:
 
         self.scribe_worker = True
 
-
         if hasattr(self.bridge_data, "scribe_name") and self.scribe_worker:
             self.worker_name = self.bridge_data.scribe_name
         else:
@@ -138,7 +137,6 @@ class TerminalUI:
         self.download_label = ""
         self.download_current = None
         self.download_total = None
-
 
     def initialise(self):
         # Suppress stdout / stderr
@@ -668,7 +666,7 @@ class TerminalUI:
             self.threads = data.get("threads", 0)
             self.total_uptime = data.get("uptime", 0)
             self.total_failed_jobs = data.get("uncompleted_jobs", 0)
-#            if self.scribe_worker and data.get("models"):
+            #            if self.scribe_worker and data.get("models"):
             self.total_models = data.get("models")[0]
         except Exception as ex:
             logger.warning(str(ex))

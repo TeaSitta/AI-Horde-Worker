@@ -1,9 +1,10 @@
-import json
 import copy
+import json
 import time
+
 import requests
 
-from worker.consts import BRIDGE_VERSION # KNOWN_INTERROGATORS, KNOWN_POST_PROCESSORS, POST_PROCESSORS_HORDELIB_MODELS
+from worker.consts import BRIDGE_VERSION  # KNOWN_INTERROGATORS, KNOWN_POST_PROCESSORS, POST_PROCESSORS_HORDELIB_MODELS
 from worker.logger import logger
 from worker.stats import bridge_stats
 
@@ -111,4 +112,3 @@ class ScribePopper(JobPopper):
             self.report_skipped_info()
             return None
         return [self.pop]
-
