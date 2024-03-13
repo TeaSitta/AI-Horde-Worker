@@ -1,22 +1,18 @@
-This repository allows you to set up a AI Horde Worker to generate or alchemize images for others
+THIS BRANCH IS A STRIPPED DOWN SCRIBE ONLY BRIDGE!
+
+
+This repository acts as a bridge between a KoboldAI compatible inference API (Such as KoboldAI-united or aphrodite-engine) and the Kobold Horde.
+It will fetch available text generation jobs from the horde, feed them to your inference API, and award you kudos for work completed.
 
 # AI Horde Worker
 
 ## Important Note:
+-This repository is ONLY for text(scribe) workers.
 
-- As of January 2024, the official worker is now [horde-worker-reGen](https://github.com/Haidra-Org/horde-worker-reGen).
-- You should use `reGen` if you are a new worker and are looking to do *image generation*.
-- If you are looking to do *alchemy* (post-processing, interrogation, captioning, etc), you should continue to use `AI-Horde-Worker`.
+For *image generation* use [horde-worker-reGen](https://github.com/Haidra-Org/horde-worker-reGen).
+For *Alchemy* use the old [AI-HORDE-WORKER](https://github.com/Haidra-Org/AI-Horde-Worker)
 
 
-# Legacy information: 
-This repo contains the original (now outdated - see above) reference implementation for a [AI Horde](https://aihorde.net) Worker. This will turn your graphics card(s) into a worker for the AI Horde and you will receive in turn kudos which will give you priority for your own generations.
-
-Alternatively you can become an Alchemist worker which is much more lightweight and can even run on CPU (i.e. without a GPU).
-
-Please note that **AMD card are not currently supported**, but may be in the future. (Note: [horde-worker-reGen](https://github.com/Haidra-Org/horde-worker-reGen) has prelimanry support for AMD and if you are an AMD card and would like to help us improve support by testing it, let us know [in our discord](https://discord.gg/kwst4K7wbv))
- 
-To run the bridge, simply follow the instructions for your own OS
 
 # Installing
 
@@ -90,30 +86,10 @@ You can also edit this file using a text editor. We also provide a `bridgeData_t
 
 ## Startup
 
-Start your worker, depending on which type your want.
-
-* If you want to generate Stable Diffusion images for others, run `horde-bridge`.
-
-
-    **Warning:** This requires a powerful GPU. You will need a GPU with at least 6G VRAM
-    
-* If you want to interrogate images for other, run `horde-alchemist_bridge`. This worker is very lightweight and you can even run it with just CPU (but you'll have to adjust which forms you serve)
+For linux run `horde-scribe-bridge.sh`
+For windows run `horde-scribe-bridge.cmd`
 
 
-    **Warning:** Currently the Alchemist worker will download images directly from the internet, as if you're visiting a webpage. If this is a concern to you, do not run this worker type. We are working on setting up a proxy to avoid that.
-
-Remember that worker names have to be different between Stable Diffusion worker and Alchemist worker. If you want to start a different type of worker in the same install directory, ensure a new name by using the `--name` command line argument.
-
-
-## Running with multiple GPUs
-
-To use multiple GPUs as with NVLINK workers, each has to start their own webui instance. For linux, you just need to limit the run to a specific card:
-
-```
-CUDA_VISIBLE_DEVICES=0 ./horde-bridge.sh -n "My awesome instance #1"
-CUDA_VISIBLE_DEVICES=1 ./horde-bridge.sh -n "My awesome instance #2"
-```
-etc
 
 # Updating
 
@@ -147,9 +123,6 @@ Use this approach if you downloaded the git repository as a zip file and extract
 
 * First put your worker into maintenance to avoid aborting any ongoing operations. Wait until you see no more jobs running.
 * In the terminal in which it's running, simply press `Ctrl+C` together.
-
-# Model Usage
-Many models in this project use the CreativeML OpenRAIL License.  [Please read the full license here.](https://huggingface.co/spaces/CompVis/stable-diffusion-license)
 
 
 # Docker
