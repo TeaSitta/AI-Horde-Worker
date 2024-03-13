@@ -96,20 +96,8 @@ class TerminalUI:
         self.should_stop = False
         self.bridge_data = bridge_data
 
-        self.dreamer_worker = False
-        self.scribe_worker = False
-        self.alchemy_worker = False
+        self.scribe_worker = True
 
-        # We check the name rather the type directly to avoid bad things
-        # happening if we import the Kobold class
-        if bridge_data.__class__.__name__ == "InterrogationBridgeData":
-            self.alchemy_worker = True
-        elif bridge_data.__class__.__name__ == "StableDiffusionBridgeData":
-            self.dreamer_worker = True
-        elif bridge_data.__class__.__name__ == "KoboldAIBridgeData":
-            self.scribe_worker = True
-
-        self.model_manager = None
 
         if hasattr(self.bridge_data, "scribe_name") and self.scribe_worker:
             self.worker_name = self.bridge_data.scribe_name
@@ -150,12 +138,7 @@ class TerminalUI:
         self.download_label = ""
         self.download_current = None
         self.download_total = None
-        if not self.scribe_worker:
-            from hordelib.settings import UserSettings
-            from hordelib.shared_model_manager import SharedModelManager
 
-            self.model_manager = SharedModelManager
-            UserSettings.download_progress_callback = self.download_progress
 
     def initialise(self):
         # Suppress stdout / stderr
@@ -172,13 +155,6 @@ class TerminalUI:
         locale.setlocale(locale.LC_ALL, "")
         self.initialise_main_window()
         self.resize()
-
-    def download_progress(self, desc, current, total):
-        """Called by the model manager when downloading files to update us on progress"""
-        # Just save what we're passed for later rendering
-        self.download_label = desc
-        self.download_current = current
-        self.download_total = total
 
     def load_log(self):
         self.load_log_queue()
@@ -692,8 +668,8 @@ class TerminalUI:
             self.threads = data.get("threads", 0)
             self.total_uptime = data.get("uptime", 0)
             self.total_failed_jobs = data.get("uncompleted_jobs", 0)
-            if self.scribe_worker and data.get("models"):
-                self.total_models = data.get("models")[0]
+#            if self.scribe_worker and data.get("models"):
+            self.total_models = data.get("models")[0]
         except Exception as ex:
             logger.warning(str(ex))
 
@@ -720,18 +696,6 @@ class TerminalUI:
             logger.warning(str(ex))
 
     def update_stats(self):
-        # Total models
-        if self.model_manager and self.model_manager.manager:
-            if self.dreamer_worker:
-                self.total_models = len(self.model_manager.manager.get_loaded_models_names(mm_include="compvis"))
-            elif self.alchemy_worker:
-                self.total_models = len(
-                    self.model_manager.manager.get_loaded_models_names(
-                        mm_include=["clip", "blip", "codeformer", "gfpgan", "esrgan"],
-                    ),
-                )
-            elif self.scribe_worker:
-                self.total_models = "See KAI"
         # Recent job pop times
         if "pop_time_avg_5_mins" in bridge_stats.stats:
             self.pop_time = bridge_stats.stats["pop_time_avg_5_mins"]

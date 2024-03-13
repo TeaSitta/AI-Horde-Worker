@@ -13,8 +13,8 @@ We welcome all kinds of contributions:
 ## Getting started
 
 If you have a specific contribution in mind, be sure to check the
-[issues](https://github.com/Sygil-Dev/nataili/issues)
-and [pull requests](https://github.com/Sygil-Dev/nataili/pulls)
+[issues](https://github.com/Haidra-Org/AI-Horde-Worker/issues)
+and [pull requests](https://github.com/Haidra-Org/AI-Horde-Worker/pulls)
 in progress - someone could already be working on something similar
 and you can help out.
 
