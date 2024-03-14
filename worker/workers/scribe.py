@@ -1,8 +1,7 @@
 """This is the scribe worker, it's the main workhorse that deals with getting requests, and spawning data processing"""
 import time
 
-from worker.jobs.poppers import ScribePopper
-from worker.jobs.scribe import ScribeHordeJob
+from worker.jobs import ScribeHordeJob, ScribePopper
 from worker.workers.framework import WorkerFramework
 
 

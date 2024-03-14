@@ -144,13 +144,13 @@ class WorkerFramework:
     def pop_job(self):
         """Polls the AI Horde for new jobs and creates as many Job classes needed
         As the amount of jobs returned"""
-        job_popper = self.PopperClass(self.model_manager, self.bridge_data)
+        job_popper = self.PopperClass(self.bridge_data)
         pops = job_popper.horde_pop()
         if not pops:
             return None
         new_jobs = []
         for pop in pops:
-            new_job = self.JobClass(self.model_manager, self.bridge_data, pop)
+            new_job = self.JobClass(self.bridge_data, pop)
             new_jobs.append(new_job)
         return new_jobs
 
