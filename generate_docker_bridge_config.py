@@ -59,8 +59,8 @@ config = {
     "max_context_length": os.getenv("MAX_CONTEXT_LENGTH", "1024"),
     "max_threads": get_int_env("HORDE_MAX_THREADS", "1"),
     "queue_size": get_int_env("HORDE_QUEUE_SIZE", "0"),
-#    "stats_output_frequency": get_int_env("HORDE_STATS_OUTPUT_FREQUENCY", "30"),
-#    "ray_temp_dir": os.getenv("HORDE_RAY_TEMP_DIR", "/cache/ray"),
+    #    "stats_output_frequency": get_int_env("HORDE_STATS_OUTPUT_FREQUENCY", "30"),
+    #    "ray_temp_dir": os.getenv("HORDE_RAY_TEMP_DIR", "/cache/ray"),
 }
 
 with open(bridge_data_file, "w") as file:

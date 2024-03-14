@@ -72,17 +72,13 @@ This script can take 10-15 minutes to complete.
 
 ## Configure
 
-In order to connect to the horde with your username and a good worker name, you need to configure your horde bridge. To this end, we've developed an easy WebUI you can use
-
-To load it, simply run `bridge-webui`. It will then show you a URL you can open with your browser. Open it and it will allow you to tweak all horde options. Once you press `Save Configuration` it will create a `bridgeData.yaml` file with all the options you set.
+Make a copy of bridgeData_template.yaml to bridgeData.yaml
+Edit bridgeData.yaml:
 
 Fill in at least:
    * Your worker name (has to be unique horde-wide)
    * Your AI Horde API key
 
-You can use this UI and update your bridge settings even while your worker is running. Your worker should then pick up the new settings within 60 seconds.
-
-You can also edit this file using a text editor. We also provide a `bridgeData_template.yaml` with comments on each option which you can copy into a new `bridgeData.yaml` file. This info should soon be onboarded onto the webui as well.
 
 ## Startup
 
