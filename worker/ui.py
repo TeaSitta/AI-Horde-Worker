@@ -1,4 +1,3 @@
-# curses.py
 # A simple terminal worker UI
 # Supports audio alerts on low VRAM / RAM and toggling worker maintenance mode.
 import contextlib

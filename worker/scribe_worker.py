@@ -53,7 +53,7 @@ class ScribeWorker:
             self.ui.start()
 
     def on_restart(self):
-        """Called when the worker loop is restarted. Make sure to invoke super().on_restart() when overriding."""
+        """Called when the worker loop is restarted."""
         self.soft_restarts += 1
 
     @logger.catch(reraise=True)
@@ -250,8 +250,3 @@ class ScribeWorker:
         self.reload_data()
         self.executor._max_workers = self.bridge_data.max_threads
         self.last_config_reload = time.time()
-
-    def get_running_models(self):
-        running_job_models = [job.current_model for job_thread, start_time, job in self.running_jobs]
-        queued_jobs_models = [job.current_model for job in self.waiting_jobs]
-        return list(set(running_job_models + queued_jobs_models))
