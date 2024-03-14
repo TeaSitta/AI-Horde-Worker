@@ -42,7 +42,7 @@ RUNTIME IS CURRENTLY A WORK IN PROGRESS
 # Running
 
 ## Linux
-From the AI-Horde-Worker directory, run either `horde-scribe-bridge.sh` or `python horde-scribe-bridge.py`
+From the AI-Horde-Worker directory, run `python horde_scribe_bridge.py`
 
 After starting the bridge your worker should be in maintenance mode. 
 
@@ -63,7 +63,7 @@ Use this approach if you cloned the original repository using `git clone`
 1. Navigate a shell session to the folder you have the AI Horde Worker repository installed.
 1. Run `git pull`
 1. If git tells you the `requirements.txt` file has been updated, run `pip install -r requirements.txt -U`
-1. Run the appropriate `horde-scribe-bridge` script as usual.
+1. Run `horde_scribe_bridge` script as usual.
 
 
 # Stopping the bridge
