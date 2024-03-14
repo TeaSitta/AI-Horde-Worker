@@ -27,7 +27,7 @@ or the automated tests will fail.
 
 - [black code formatter](https://github.com/psf/black)
 - [flake8 style enforcement](https://flake8.pycqa.org/en/latest/index.html)
-- [isort to sort imports alphabetically](https://isort.readthedocs.io/en/stable/)
+
 
 On Linux or MacOS, you can fix and check your code style by running
 the command `style.sh --fix`

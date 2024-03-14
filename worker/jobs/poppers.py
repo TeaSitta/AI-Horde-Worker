@@ -99,7 +99,6 @@ class ScribePopper(JobPopper):
             "models": self.available_models,
             "max_length": self.bridge_data.max_length,
             "max_context_length": self.bridge_data.max_context_length,
-            "priority_usernames": self.bridge_data.priority_usernames,
             "softprompts": self.bridge_data.softprompts[self.bridge_data.model],
             "bridge_agent": self.BRIDGE_AGENT,
             "threads": self.bridge_data.max_threads,

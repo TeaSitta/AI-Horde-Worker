@@ -25,6 +25,6 @@
 #Scribe-bridge-refactor confirmed
 loguru
 pyyaml
-requests   #new rec?
+requests
 psutil
 pynvml

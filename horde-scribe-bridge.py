@@ -1,7 +1,7 @@
 """This is the bridge, It connects the horde with the ML processing"""
-# isort: off
+
 # We need to import the argparser first, as it sets the necessary Switches
-from worker.argparser.scribe import args
+from worker.argparser import args
 from worker.utils.set_envs import set_worker_env_vars_from_config
 
 set_worker_env_vars_from_config()  # Get `cache_home` from `bridgeconfig.yaml` into the environment variable
@@ -9,8 +9,6 @@ set_worker_env_vars_from_config()  # Get `cache_home` from `bridgeconfig.yaml` i
 from worker.bridge_data.scribe import KoboldAIBridgeData  # noqa: E402
 from worker.logger import logger, quiesce_logger, set_logger_verbosity  # noqa: E402
 from worker.workers.scribe import ScribeWorker  # noqa: E402
-
-# isort: on
 
 
 def main():

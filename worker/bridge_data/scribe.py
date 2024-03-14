@@ -4,7 +4,7 @@ import os
 import requests
 from loguru import logger
 
-from worker.argparser.scribe import args
+from worker.argparser import args
 from worker.bridge_data.framework import BridgeDataTemplate
 
 
@@ -22,8 +22,6 @@ class KoboldAIBridgeData(BridgeDataTemplate):
         self.softprompts = {}
         self.current_softprompt = None
 
-        self.nsfw = os.environ.get("HORDE_NSFW", "true") == "true"
-        self.blacklist = list(filter(lambda a: a, os.environ.get("HORDE_BLACKLIST", "").split(",")))
 
     @logger.catch(reraise=True)
     def reload_data(self):
@@ -34,10 +32,6 @@ class KoboldAIBridgeData(BridgeDataTemplate):
             self.worker_name = self.scribe_name
         if args.kai_url:
             self.kai_url = args.kai_url
-        if args.sfw:
-            self.nsfw = False
-        if args.blacklist:
-            self.blacklist = args.blacklist
         self.validate_kai()
         if self.kai_available and not self.initialized and previous_url != self.horde_url:
             logger.init(

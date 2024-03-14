@@ -25,29 +25,19 @@ class BridgeDataTemplate:
         # If there is a YAML config file, load it
         self.load_config()
 
-        self.horde_url = os.environ.get("HORDE_URL", "https://stablehorde.net")
+        self.horde_url = os.environ.get("HORDE_URL", "https://aihorde.net")
         # Give a cool name to your instance
-        self.worker_name = os.environ.get(
-            "HORDE_WORKER_NAME",
-            f"Automated Instance #{random.randint(-100000000, 100000000)}",
-        )
+        self.worker_name = os.environ.get("HORDE_WORKER_NAME", "An Awesome AI Horde Worker")
         # The api_key identifies a unique user in the horde
         self.api_key = os.environ.get("HORDE_API_KEY", "0000000000")
-        # Put other users whose prompts you want to prioritize.
-        # The owner's username is always included so you don't need to add it here,
-        # unless you want it to have lower priority than another user
-        self.priority_usernames = list(filter(lambda a: a, os.environ.get("HORDE_PRIORITY_USERNAMES", "").split(",")))
-        self.max_power = int(os.environ.get("HORDE_MAX_POWER", 8))
         self.max_threads = int(os.environ.get("HORDE_MAX_THREADS", 1))
         self.queue_size = int(os.environ.get("HORDE_QUEUE_SIZE", 0))
-        self.allow_unsafe_ip = os.environ.get("HORDE_ALLOW_UNSAFE_IP", "true") == "true"
-        self.require_upfront_kudos = os.environ.get("REQUIRE_UPFRONT_KUDOS", "false") == "true"
         self.stats_output_frequency = int(os.environ.get("STATS_OUTPUT_FREQUENCY", 30))
         self.disable_terminal_ui = os.environ.get("DISABLE_TERMINAL_UI", "false") == "true"
         self.initialized = False
         self.username = None
-        self.models_reloading = False
-        self.max_models_to_download = 10
+#        self.models_reloading = False
+#        self.max_models_to_download = 10
         self.suppress_speed_warnings = False
 
     def load_config(self):
@@ -72,17 +62,10 @@ class BridgeDataTemplate:
             self.worker_name = self.args.worker_name
         if self.args.horde_url:
             self.horde_url = self.args.horde_url
-        if self.args.priority_usernames:
-            self.priority_usernames = self.args.priority_usernames
         if self.args.max_threads:
             self.max_threads = self.args.max_threads
         if self.args.queue_size:
             self.queue_size = self.args.queue_size
-        if self.args.allow_unsafe_ip:
-            self.allow_unsafe_ip = self.args.allow_unsafe_ip
-        if self.args.max_power:
-            self.max_power = self.args.max_power
-        self.max_power = max(self.max_power, 2)
         if not self.initialized or previous_api_key != self.api_key:
             try:
                 user_req = requests.get(

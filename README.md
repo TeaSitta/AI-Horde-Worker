@@ -135,34 +135,11 @@ ghcr.io/Haidra-Org/ai-horde-worker:<insert release tag here>
 
 Optional environment variables:
 
-- HORDE_URL: The URL of the Horde server to connect to. Defaults to 'https://stablehorde.net'.
-- HORDE_WORKER_NAME: The name of the worker. If not set, a random worker name will be generated.
-- HORDE_WORKER_PREFIX: Used in random worker name generation, defaults to DockerWorker ${HORDE_WORKER_PREFIX}#0123097164
-- HORDE_PRIORITY_USERNAMES: A comma-separated list of usernames that should be given priority in the queue.
-- HORDE_MAX_THREADS: The maximum number of threads to use for rendering. Defaults to '1'.
+- HORDE_URL: The URL of the Horde server to connect to. Defaults to 'https://aihorde.net'.
+- HORDE_WORKER_NAME: Leave blank if using horde_worker_prefix
+- HORDE_WORKER_PREFIX: Worker name used in random worker name generation, defaults to DockerWorker ${HORDE_WORKER_PREFIX}#0123097164
+- HORDE_MAX_THREADS: The maximum number of inference jobs to bridge. Defaults to '1'.
 - HORDE_QUEUE_SIZE: The maximum number of jobs to queue. Defaults to '0', meaning no limit.
-- HORDE_REQUIRE_UPFRONT_KUDOS: Whether to require users to have enough kudos before they can submit jobs. Defaults to 'false'.
-- HORDE_MAX_POWER: The maximum power level to use for rendering. Defaults to '8'.
-- HORDE_NSFW: Whether to allow NSFW content. Defaults to 'true'.
-- HORDE_CENSOR_NSFW: Whether to censor NSFW content. Defaults to 'false'.
-- HORDE_BLACKLIST: A comma-separated list of tags to blacklist.
-- HORDE_CENSORLIST: A comma-separated list of tags to censor.
-- HORDE_ALLOW_IMG2IMG: Whether to allow image-to-image translation models. Defaults to 'true'.
-- HORDE_ALLOW_PAINTING: Whether to allow painting models. Defaults to 'true'.
-- HORDE_ALLOW_UNSAFE_IP: Whether to allow unsafe IP addresses. Defaults to 'true'.
-- HORDE_ALLOW_POST_PROCESSING: Whether to allow post-processing. Defaults to 'true'.
-- HORDE_ALLOW_CONTROLNET: Whether to allow ControlNet. Defaults to 'false'.
-- HORDE_DYNAMIC_MODELS: Whether to use dynamic models. Defaults to 'true'.
-- HORDE_NUMBER_OF_DYNAMIC_MODELS: The number of dynamic models to use. Defaults to '3'.
-- HORDE_MAX_MODELS_TO_DOWNLOAD: The maximum number of models to download. Defaults to '10'.
-- HORDE_STATS_OUTPUT_FREQUENCY: The frequency (in seconds) to output stats. Defaults to '30'.
-- HORDE_NATAILI_CACHE_HOME: The location of the cache directory. Defaults to '/cache'.
-- HORDE_LOW_VRAM_MODE: Whether to use low VRAM mode. Defaults to 'true'.
-- HORDE_ENABLE_MODEL_CACHE: Whether to enable model caching. Defaults to 'false'.
-- HORDE_ALWAYS_DOWNLOAD: Whether to always download models. Defaults to 'false'.
+
 - HORDE_RAY_TEMP_DIR: The location of the Ray temporary directory. Defaults to '/cache/ray'.
-- HORDE_DISABLE_VOODOO: Whether to disable Voodoo. Defaults to 'false'.
 - HORDE_DISABLE_TERMINAL_UI: Whether to disable the terminal UI. Defaults to 'false'.
-- HORDE_MODELS_TO_LOAD: A comma-separated list of models to load. Defaults to ['stable_diffusion_2.1', 'stable_diffusion'].
-- HORDE_MODELS_TO_SKIP: A comma-separated list of models to skip. Defaults to ['stable_diffusion_inpainting'].
-- HORDE_FORMS: A comma-separated list of forms to use. Defaults to ['caption', 'nsfw'].
