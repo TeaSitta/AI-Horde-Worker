@@ -98,10 +98,7 @@ class TerminalUI:
 
         self.scribe_worker = True
 
-        if hasattr(self.bridge_data, "scribe_name") and self.scribe_worker:
-            self.worker_name = self.bridge_data.scribe_name
-        else:
-            self.worker_name = self.bridge_data.worker_name
+        self.worker_name = self.bridge_data.worker_name
         if hasattr(self.bridge_data, "horde_url"):
             self.url = self.bridge_data.horde_url
         elif hasattr(self.bridge_data, "kai_url"):

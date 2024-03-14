@@ -4,13 +4,13 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+from worker.jobs import ScribeHordeJob, ScribePopper
 from worker.logger import logger
 from worker.stats import bridge_stats
 
 
-class WorkerFramework:
-    def __init__(self, this_model_manager, this_bridge_data):
-        self.model_manager = this_model_manager
+class ScribeWorker:
+    def __init__(self, this_bridge_data):
         self.bridge_data = this_bridge_data
         self.running_jobs = []
         self.waiting_jobs = []
@@ -29,9 +29,8 @@ class WorkerFramework:
         self.ui_class = None
         self.last_stats_time = time.time()
         logger.stats("Starting new stats session")
-        # These two should be filled in by the extending classes
-        self.PopperClass = None
-        self.JobClass = None
+        self.PopperClass = ScribePopper
+        self.JobClass = ScribeHordeJob
         self.startup_terminal_ui()
 
     def startup_terminal_ui(self):
@@ -102,38 +101,34 @@ class WorkerFramework:
                         sys.exit(self.exit_rc)
 
     def process_jobs(self):
-        # logger.debug("Cron: Starting process_jobs()")
         if time.time() - self.last_config_reload > 60:
             self.reload_bridge_data()
         if not self.can_process_jobs():
-            # logger.debug("Cron: SLEEPING FOR 5 SECONDS")
             time.sleep(5)
             return
         # Add job to queue if we have space
         if len(self.waiting_jobs) < self.bridge_data.queue_size:
-            # logger.debug("Cron: Starting to add job to queue")
             self.add_job_to_queue()
-            # logger.debug("Cron: End to add job to queue")
-        # Start new jobs
-        # logger.debug("Cron: Starting to start new jobs")
+
         while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
             pass
-        # logger.debug("Cron: End of start new jobs")
+
         # Check if any jobs are done
-        # logger.debug("Cron: Starting to check if jobs are done")
         for job_thread, start_time, job in self.running_jobs:
             self.check_running_job_status(job_thread, start_time, job)
             if self.should_restart or self.should_stop:
                 break
-        # logger.debug("Cron: End of check if jobs are done")
         # Give the CPU a break
         time.sleep(0.02)
-        # logger.debug("Cron: End process_jobs()")
 
     def can_process_jobs(self):
         """This function returns true when this worker can start polling for jobs from the AI Horde
         This function MUST be overriden, according to the logic for this worker type"""
-        return False
+        kai_avail = self.bridge_data.kai_available
+        if not kai_avail:
+            # We do this to allow the worker to try and reload the config every 5 seconds until the KAI server is up
+            self.last_config_reload = time.time() - 55
+        return kai_avail
 
     def add_job_to_queue(self):
         """Picks up a job from the horde and adds it to the local queue
@@ -255,3 +250,8 @@ class WorkerFramework:
         self.reload_data()
         self.executor._max_workers = self.bridge_data.max_threads
         self.last_config_reload = time.time()
+
+    def get_running_models(self):
+        running_job_models = [job.current_model for job_thread, start_time, job in self.running_jobs]
+        queued_jobs_models = [job.current_model for job in self.waiting_jobs]
+        return list(set(running_job_models + queued_jobs_models))

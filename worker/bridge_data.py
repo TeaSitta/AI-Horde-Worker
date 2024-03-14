@@ -89,8 +89,6 @@ class BridgeData:
                 logger.warning(f"Server {self.horde_url} error during find_user. Setting username 'N/A'")
                 self.username = "N/A"
 
-        if hasattr(self, "scribe_name") and not self.args.worker_name:
-            self.worker_name = self.scribe_name
         if args.kai_url:
             self.kai_url = args.kai_url
         self.validate_kai()

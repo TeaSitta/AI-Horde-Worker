@@ -21,7 +21,6 @@ class HordeJob:
     retry_interval = 1
 
     def __init__(self, bd, pop):
-        # self.model_manager = mm
         self.bridge_data = copy.deepcopy(bd)
         self.pop = pop
         self.loop_retry = 0
@@ -31,15 +30,6 @@ class HordeJob:
         self.stale_time = None
         self.submit_dict = {}
         self.headers = {"apikey": self.bridge_data.api_key}
-
-        # self.current_model = None
-        # self.seed = None
-        # self.text = None
-        # self.current_model = self.bridge_data.model
-        # self.current_id = self.pop["id"]
-        # self.current_payload = self.pop["payload"]
-        # self.current_payload["quiet"] = True
-        # self.requested_softprompt = self.current_payload.get("softprompt")
 
     def is_finished(self):
         """Check if the job is finished"""
@@ -229,23 +219,6 @@ class ScribeHordeJob(HordeJob):
     def start_job(self):
         """Starts a Scribe job from a pop request"""
         logger.debug("Starting job in threadpool for model: {}", self.current_model)
-
-        # """Starts a job from a pop request
-        # This method MUST be extended with the specific logic for this worker
-        # At the end it MUST create a new thread to submit the results to the horde"""
-        # # Pop new request from the Horde
-        # if self.pop is None:
-        #     self.pop = self.get_job_from_server()
-        # if self.pop is None:
-        #     logger.error(
-        #         f"Something has gone wrong with {self.bridge_data.horde_url}. Please inform its administrator!",
-        #     )
-        #     time.sleep(self.retry_interval)
-        #     self.status = JobStatus.FAULTED
-        #     # The extended function should return as well
-        #     return
-        # self.process_time = time.time()
-        # self.status = JobStatus.WORKING
 
         super().start_job()
         if self.status == JobStatus.FAULTED:
