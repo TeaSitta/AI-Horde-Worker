@@ -230,7 +230,7 @@ class ScribeHordeJob(HordeJob):
         # These params will always exist in the payload from the horde
         gen_payload = self.current_payload
         if "width" in gen_payload or "length" in gen_payload or "steps" in gen_payload:
-            logger.error(f"Stable Diffusion payload detected. Aborting. ({gen_payload})")
+            logger.error(f"Stable Horde payload detected. Aborting. ({gen_payload})")
             self.status = JobStatus.FAULTED
             self.start_submit_thread()
             return
@@ -354,7 +354,7 @@ class ScribeHordeJob(HordeJob):
 # old worker.jobs.poppers
 class JobPopper:
     retry_interval = 1
-    BRIDGE_AGENT = f"AI Horde Worker:{BRIDGE_VERSION}:https://github.com/db0/AI-Horde-Worker"
+    BRIDGE_AGENT = f"AI Horde Worker:{BRIDGE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
     def __init__(self, bd):
         self.bridge_data = copy.deepcopy(bd)

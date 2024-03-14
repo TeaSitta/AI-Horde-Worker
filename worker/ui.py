@@ -13,7 +13,6 @@ import time
 from collections import deque
 from math import trunc
 
-import pkg_resources
 import psutil
 import requests
 
@@ -370,7 +369,7 @@ class TerminalUI:
         self.draw_line(self.main, row_horde, "Entire Horde")
         self.print(self.main, row_local, 2, f"{self.worker_name}")
         self.print(self.main, row_local, self.width - 8, f"{self.commit_hash[:6]}")
-        self.print(self.main, row_local, self.width - 19, f"({self.get_hordelib_version()})")
+        #   self.print(self.main, row_local, self.width - 19, f"({self.get_hordelib_version()})")
 
         label(row_local + 1, col_left, "Uptime:")
         label(row_local + 2, col_left, "Models:")
@@ -799,11 +798,11 @@ class TerminalUI:
         curses.echo()
         curses.endwin()
 
-    def get_hordelib_version(self):
-        try:
-            return pkg_resources.get_distribution("hordelib").version
-        except pkg_resources.DistributionNotFound:
-            return "Unknown"
+    # def get_hordelib_version(self):
+    #     try:
+    #         return pkg_resources.get_distribution("hordelib").version
+    #     except pkg_resources.DistributionNotFound:
+    #         return "Unknown"
 
 
 if __name__ == "__main__":

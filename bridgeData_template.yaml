@@ -8,7 +8,8 @@ api_key: "0000000000"
 
 # The KoboldAI Client API URL
 kai_url: "http://localhost:5000"
-# The max amount of tokens to generate with this worker 
+
+# The max amount of tokens to generate with this worker per job
 max_length: 80
 # The max tokens to use from the prompt
 max_context_length: 1024
