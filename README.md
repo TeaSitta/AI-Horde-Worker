@@ -5,12 +5,15 @@ This repository acts as a bridge between a KoboldAI compatible LLM inference API
 -This repository is ONLY for text(scribe) workers.
 
 For horde *image generation* use [horde-worker-reGen](https://github.com/Haidra-Org/horde-worker-reGen).
+
 For horde *Alchemy* use the old [AI-HORDE-WORKER](https://github.com/Haidra-Org/AI-Horde-Worker)
 
 
 # Installing
 
-If you haven't already, go to [AI Horde and register an account](https://aihorde.net/register) to create an API key. Store your API key somewhere secure, you will need it in order to run a worker for the horde.
+If you haven't already, go to [AI Horde and register an account](https://aihorde.net/register) to create an API key.
+
+Store your API key somewhere secure, you will need it in order to run a worker for the horde.
 
 ## Windows
 
@@ -40,7 +43,7 @@ Use these instructions if you do not have git for windows and do not want to ins
 
 This assumes you have git installed
 
-Open a bash terminal and run these commands (just copy-paste them all together)
+Open a bash terminal and run these commands
 
 ```bash
 git clone https://github.com/TeaSitta/AI-Horde-Worker.git
@@ -61,6 +64,11 @@ If installing natively or using a python venv, install the dependancies with `pi
 RUNTIME IS CURRENTLY A WORK IN PROGRESS
 
 # Running
+After starting the bridge your worker should be in maintenance mode. 
+
+If your KoboldAI inference API is reachable you should see `This worker has been put into maintenance mode by its owner (403)` in the console.
+
+Press m to exit maintenance mode, this may take a few moments after first starting the bridge.
 
 ## Linux
 From the AI-Horde-Worker directory, run either `horde-scribe-bridge.sh` or `python horde-scribe-bridge.py`
@@ -75,7 +83,7 @@ From the AI-Horde-Worker directory, run `python horde-scribe-bridge.py`
 
 In case there is more recent code to use follow these steps to update
 
-First step: Shut down your worker by putting it into maintenance mode and waiting for all jobs to complete, and then pressing ctrl+c
+First: Shut down your worker by putting it into maintenance mode, waiting for all active jobs to complete, then pressing `q` or ctrl+c
 
 ## git
 
