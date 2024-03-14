@@ -9,9 +9,6 @@ COPY . .
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
-        ffmpeg \
-        libsm6 \
-        libxext6 \
         bzip2 \
         wget \
       && ./update-runtime.sh \
