@@ -19,6 +19,8 @@ from worker.logger import config, logger
 from worker.stats import bridge_stats
 from worker.utils.gpuinfo import GPUInfo
 
+from .consts import RELEASE
+
 
 class DequeOutputCollector:
     def __init__(self):
@@ -132,6 +134,7 @@ class TerminalUI:
         self.download_label = ""
         self.download_current = None
         self.download_total = None
+        self.script_version = RELEASE
 
     def initialise(self):
         # Suppress stdout / stderr
@@ -368,7 +371,7 @@ class TerminalUI:
         self.draw_line(self.main, row_horde, "Entire Horde")
         self.print(self.main, row_local, 2, f"{self.worker_name}")
         self.print(self.main, row_local, self.width - 8, f"{self.commit_hash[:6]}")
-        #   self.print(self.main, row_local, self.width - 19, f"({self.get_hordelib_version()})")
+        self.print(self.main, row_local, self.width - 19, f"({self.script_version})")
 
         label(row_local + 1, col_left, "Uptime:")
         label(row_local + 2, col_left, "Models:")
@@ -797,11 +800,6 @@ class TerminalUI:
         curses.echo()
         curses.endwin()
 
-    # def get_hordelib_version(self):
-    #     try:
-    #         return pkg_resources.get_distribution("hordelib").version
-    #     except pkg_resources.DistributionNotFound:
-    #         return "Unknown"
 
 
 if __name__ == "__main__":
