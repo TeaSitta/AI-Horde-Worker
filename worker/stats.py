@@ -1,5 +1,5 @@
 """Bridge Stats Tracker"""
-import json
+# import json
 import threading
 import time
 from collections import deque
@@ -79,10 +79,10 @@ class BridgeStats:
                 self.stats["jobs_per_hour"] = round(jobs_per_hour)
                 self.stats["avg_kudos_per_job"] = round(total_kudos / jobs_per_hour, 1)
 
-    def get_pretty_stats(self):
-        """Returns a pretty string of the stats"""
-        with self._mutex:
-            return json.dumps(self.stats, indent=4)
+    # def get_pretty_stats(self):
+    #     """Returns a pretty string of the stats"""
+    #     with self._mutex:
+    #         return json.dumps(self.stats, indent=4)
 
 
 bridge_stats = BridgeStats()
