@@ -49,7 +49,7 @@ src = [item for item in src if item not in ignore_src]
 #     "--line-length=119",
 # ]
 ruff_args = [
-    "ruff",
+    "ruff check",
 ]
 
 if args.fix:
