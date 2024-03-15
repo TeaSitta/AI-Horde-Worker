@@ -169,3 +169,4 @@ src/taming-transformers
 .vscode
 lib64
 pyvenv.cfg
+bin/
