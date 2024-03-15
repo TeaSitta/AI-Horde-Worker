@@ -19,8 +19,10 @@ PERIOD_YESTERDAY = 2
 PERIOD_HOUR = 3
 
 # regex to identify model lines
-REGEX = re.compile(r".*(\d\d\d\d-\d\d-\d\d \d\d:\d\d).* Job pop took (\d+\.\d+).*node: (.*)\)")
-
+POP_REGEX = re.compile(r".*(\d\d\d\d-\d\d-\d\d \d\d:\d\d).* Job pop took (\d+\.\d+).*node: (.*)\)")
+JOB_PAYLOAD_REGEX = 1
+JOB_START_REGEX = 1
+GEN_START_REGEX = 1
 
 class LogStats:
     def __init__(self, period=PERIOD_ALL, logfile=LOG_FILE):
@@ -59,7 +61,7 @@ class LogStats:
             with open(logfile, "rt") as infile:
                 for line in infile:
                     # Grab the lines we're interested in
-                    if regex := REGEX.match(line):
+                    if regex := POP_REGEX.match(line):
                         if self.period and self.get_date() not in regex.group(1):
                             continue
 
@@ -70,6 +72,7 @@ class LogStats:
                             self.data[node] = [self.data[node][0] + float(kudos), self.data[node][1] + 1]
                         else:
                             self.data[node] = [float(kudos), 1]
+                    #if regex := JOB_REGEX.match(line):
 
                         # Extract job prompt/character length, payloads sent, generation run times
                     progress.update()

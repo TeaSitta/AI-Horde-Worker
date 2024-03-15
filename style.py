@@ -32,24 +32,24 @@ src = [
     "worker",
 ]
 
-ignore_src = [
-    "bridgeData_template.py",
-    "bridgeData.py",
-]
+# ignore_src = [
+#     "bridgeData_template.py",
+#     "bridgeData.py",
+# ]
 
 root_folder_src = glob.glob("*.py")
 
 src.extend(root_folder_src)
 
-src = [item for item in src if item not in ignore_src]
+# src = [item for item in src if item not in ignore_src]
 
 
-black_args = [
-    "black",
-    "--line-length=119",
-]
+# black_args = [
+#     "black",
+#     "--line-length=119",
+# ]
 ruff_args = [
-    "ruff",
+    "ruff check",
 ]
 
 if args.fix:
@@ -58,11 +58,11 @@ if args.fix:
 else:
     print("fix not requested")
 
-    black_args.extend(("--check", "--diff"))
+    # black_args.extend(("--check", "--diff"))
 
 lint_processes = [
     ruff_args,
-    black_args,
+    # black_args,
 ]
 
 if args.debug:
