@@ -1,0 +1,18 @@
+name: Unstable Tests
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+    paths:
+      - '**.py'
+      - '**.json'
+      - 'tox.ini'
+      - '.github/workflows/prtests.yml'
+      - '.pre-commit-config.yaml'
+      - 'bridgeData_template.yaml'
+      - 'requirements.txt'
+      - 'requirements.dev.txt'
