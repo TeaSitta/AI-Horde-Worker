@@ -9,7 +9,7 @@ import traceback
 
 import requests
 
-from worker.consts import BRIDGE_VERSION
+from worker.consts import RELEASE_VERSION
 from worker.enums import JobStatus
 from worker.logger import logger
 from worker.stats import bridge_stats
@@ -200,7 +200,6 @@ class HordeJob:
         self.submit_dict = {}
 
 
-# from old worker.jobs.scribe
 class ScribeHordeJob(HordeJob):
     def __init__(self, bd, pop):
         # mm will always be None for the scribe
@@ -344,17 +343,14 @@ class ScribeHordeJob(HordeJob):
             "generation": self.text,
             "seed": self.seed,
         }
-        # if self.censored:
-        #     self.submit_dict["state"] = self.censored
 
     def post_submit_tasks(self, submit_req):
         bridge_stats.update_inference_stats(self.current_model, submit_req.json()["reward"])
 
 
-# old worker.jobs.poppers
 class JobPopper:
     retry_interval = 1
-    BRIDGE_AGENT = f"AI Horde Worker:{BRIDGE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
+    BRIDGE_AGENT = f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
     def __init__(self, bd):
         self.bridge_data = copy.deepcopy(bd)

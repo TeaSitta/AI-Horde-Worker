@@ -11,15 +11,16 @@ import threading
 import time
 from collections import deque
 from math import trunc
+from urllib import parse
 
 import psutil
 import requests
 
+from worker.consts import RELEASE_VERSION
 from worker.logger import config, logger
 from worker.stats import bridge_stats
 from worker.utils.gpuinfo import GPUInfo
 
-from .consts import RELEASE
 
 
 class DequeOutputCollector:
@@ -66,8 +67,7 @@ class TerminalUI:
     }
 
     # Refresh interval in seconds to call API for remote worker stats
-    REMOTE_STATS_REFRESH = 5
-
+    REMOTE_STATS_REFRESH = 20
     # Refresh interval in seconds for API calls to get overall ai horde stats
     REMOTE_HORDE_STATS_REFRESH = 60
 
@@ -90,7 +90,7 @@ class TerminalUI:
         "Try again with a different prompt and/or seed.",
     ]
 
-    CLIENT_AGENT = "terminalui:1:db0"
+    CLIENT_AGENT = f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
     def __init__(self, bridge_data):
         self.should_stop = False
@@ -105,6 +105,7 @@ class TerminalUI:
             self.url = self.bridge_data.kai_url
         self._worker_info_thread = None
         self._horde_stats_thread = None
+        self._worker_model_info_thread = None
         self.main = None
         self.width = 0
         self.height = 0
@@ -118,7 +119,7 @@ class TerminalUI:
         self.worker_id = None
         threading.Thread(target=self.load_worker_id, daemon=True).start()
         self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 3)
-        self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 3)
+        self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 20)
         self.maintenance_mode = False
         self.gpu = GPUInfo()
         self.gpu.samples_per_second = 5
@@ -131,10 +132,8 @@ class TerminalUI:
         self.stderr = DequeOutputCollector()
         self._bck_stderr = sys.stderr
         self.reset_stats()
-        self.download_label = ""
-        self.download_current = None
-        self.download_total = None
-        self.script_version = RELEASE
+
+
 
     def initialise(self):
         # Suppress stdout / stderr
@@ -290,8 +289,9 @@ class TerminalUI:
         self.total_uptime = "Pending"
         self.avg_kudos_per_job = "unknown"
         self.threads = "Pending"
+        self.context = ""
         self.total_failed_jobs = "Pending"
-        self.total_models = "Pending"
+        self.modelname = "Pending"
         self.total_jobs = "Pending"
         self.queued_requests = "Pending"
         self.worker_count = "Pending"
@@ -299,6 +299,9 @@ class TerminalUI:
         self.queued_mps = "Pending"
         self.last_minute_mps = "Pending"
         self.queue_time = "Pending"
+        self.model_jobs = "Pending"
+        self.model_eta = "Pending"
+        self.model_threads = "Pending"
         self.error_count = 0
         self.warning_count = 0
 
@@ -328,24 +331,24 @@ class TerminalUI:
 
     def print_status(self):
         # This is the design template: (80 columns)
-        # ╔═AIDream-01════════════════════════════════════════════════(0.10.10)══000000═╗
-        # ║   Uptime: 0:14:35     Jobs Completed: 6       Avg Kudos Per Job: 103        ║
-        # ║   Models: 174         Kudos Per Hour: 5283        Jobs Per Hour: 524966     ║
-        # ║  Threads: 3                 Warnings: 9999               Errors: 100        ║
-        # ║ CPU Load: 99% (99%)         Free RAM: 2 GB (99%)      Job Fetch: 2.32s      ║
-        # ╟─NVIDIA GeForce RTX 3090─────────────────────────────────────────────────────╢
-        # ║   Load: 100% (90%)        VRAM Total: 24576MiB        Fan Speed: 100%       ║
-        # ║   Temp: 100C (58C)         VRAM Used: 16334MiB          PCI Gen: 5          ║
-        # ║  Power: 460W (178W)        VRAM Free: 8241MiB         PCI Width: 32x        ║
-        # ╟─Worker Total────────────────────────────────────────────────────────────────╢
-        # ║                         Worker Kudos: 9385297        Total Jobs: 701138     ║
-        # ║                         Total Uptime: 34d 19h 14m   Jobs Failed: 972        ║
-        # ╟─Entire Horde────────────────────────────────────────────────────────────────╢
-        # ║                          Jobs Queued: 99999          Queue Time: 99m        ║
-        # ║                        Total Workers: 1000        Total Threads: 1000       ║
-        # ║ Downloading some-file-with-long-name.safetensors: ######################### ║
-        # ║   (m)aintenance  (s)ource  (d)ebug  (p)ause log  (a)lerts  (r)eset  (q)uit  ║
-        # ╙─────────────────────────────────────────────────────────────────────────────╜
+        # ╔═Horde Worker Name═════════════════════════════════════════(25.10.10)══000000═╗
+        # ║   Uptime: 0:14:35      Jobs Completed: 6        Avg Kudos Per Job: 103       ║
+        # ║    Model: Llama2...    Kudos Per Hour: 5283         Jobs Per Hour: 524966    ║
+        # ║                              Warnings: 9999                Errors: 100       ║
+        # ║ CPU Load: 99% (99%)          Free RAM: 2 GB (99%)       Job Fetch: 2.32s     ║
+        # ╟─NVIDIA GeForce RTX 3090──────────────────────────────────────────────────────╢
+        # ║    Load: 100% (90%)        VRAM Total: 24576MiB         Fan Speed: 100%      ║
+        # ║    Temp: 100C (58C)         VRAM Used: 16334MiB           PCI Gen: 5         ║
+        # ║   Power: 460W (178W)        VRAM Free: 8241MiB          PCI Width: 32x       ║
+        # ╟─Worker───────────────────────────────────────────────────────────────────────╢
+        # ║  Threads: 6               Worker Kudos: 9385297         Total Jobs: 701138   ║
+        # ║  Context: 8192            Total Uptime: 34d 19h 14m    Jobs Failed: 972      ║
+        # ╟───Horde──────────────────────────────────────────────────────────────────────╢
+        # ║  Model Queue: 43           Jobs Queued: 99999           Queue Time: 99m      ║
+        # ║    Model ETA: 120        Total Workers: 1000         Total Threads: 1000     ║
+        # ║ Model Threads: 8                                                             ║
+        # ║     (m)aintenance  (s)ource  (d)ebug  (p)ause log  (a)lerts  (r)eset  (q)uit ║
+        # ╙──────────────────────────────────────────────────────────────────────────────╜
 
         # Define three colums centres
         col_left = 12
@@ -367,15 +370,15 @@ class TerminalUI:
 
         self.draw_box(0, 0, self.width, self.status_height)
         self.draw_line(self.main, row_gpu, "")
-        self.draw_line(self.main, row_total, "Worker Total")
-        self.draw_line(self.main, row_horde, "Entire Horde")
+        self.draw_line(self.main, row_total, "Worker")
+        self.draw_line(self.main, row_horde, "Horde")
         self.print(self.main, row_local, 2, f"{self.worker_name}")
+        self.print(self.main, row_local, self.width - 19, f"({RELEASE_VERSION})")
         self.print(self.main, row_local, self.width - 8, f"{self.commit_hash[:6]}")
-        self.print(self.main, row_local, self.width - 19, f"({self.script_version})")
 
         label(row_local + 1, col_left, "Uptime:")
-        label(row_local + 2, col_left, "Models:")
-        label(row_local + 3, col_left, "Threads:")
+        label(row_local + 2, col_left, "pop time:")
+        label(row_local + 3, col_left, "Model:")
         label(row_local + 4, col_left, "CPU Load:")
         label(row_local + 1, col_mid, "Jobs Completed:")
         label(row_local + 2, col_mid, "Kudos Per Hour:")
@@ -399,28 +402,32 @@ class TerminalUI:
             label(tmp_row_gpu + 3, col_right, "PCI Width:")
             tmp_row_gpu += 4
 
+        label(row_total + 1, col_left, "Threads:")
+        label(row_total + 2, col_left, "Context:")
         label(row_total + 1, col_mid, "Worker Kudos:")
         label(row_total + 2, col_mid, "Total Uptime:")
         label(row_total + 1, col_right, "Total Jobs:")
         label(row_total + 2, col_right, "Jobs Failed:")
 
-        label(row_horde + 1, col_mid, "Jobs Queued:")
+        label(row_horde + 1, col_left + 4, "Model Queue:")
+        label(row_horde + 2, col_left + 4, "Model ETA:")
+        label(row_horde + 3, col_left + 4, "Model Thread:")
+        label(row_horde + 1, col_mid, "Total Jobs Queued:")
         label(row_horde + 2, col_mid, "Total Workers:")
-        label(row_horde + 1, col_right, "Queue Time:")
+        label(row_horde + 1, col_right, "Total Queue Time:")
         label(row_horde + 2, col_right, "Total Threads:")
 
         self.print(self.main, row_local + 1, col_left, f"{self.get_uptime()}")
         self.print(self.main, row_local + 1, col_mid, f"{self.jobs_done}")
         self.print(self.main, row_local + 1, col_right, f"{self.avg_kudos_per_job}")
 
-        self.print(self.main, row_local + 2, col_left, f"{self.total_models}")
+        self.print(self.main, row_local + 2, col_left, f"{self.pop_time} s")
         self.print(self.main, row_local + 2, col_mid, f"{self.kudos_per_hour}")
         self.print(self.main, row_local + 2, col_right, f"{self.jobs_per_hour}")
 
-        self.print(self.main, row_local + 3, col_left, f"{self.threads}")
+        self.print(self.main, row_local + 3, col_left, f"{self.modelname}")
         self.print(self.main, row_local + 3, col_mid, f"{self.warning_count}")
         self.print(self.main, row_local + 3, col_right, f"{self.error_count}")
-        self.print(self.main, row_local + 4, col_right, f"{self.pop_time} s")
 
         # Add some warning colours to free ram
         ram = self.get_free_ram()
@@ -470,17 +477,23 @@ class TerminalUI:
 
                 row_gpu += 4
 
+        self.print(self.main, row_total + 1, col_left, f"{self.threads}")
         self.print(self.main, row_total + 1, col_mid, f"{self.total_kudos}")
         self.print(self.main, row_total + 1, col_right, f"{self.total_jobs}")
 
+        self.print(self.main, row_total + 2, col_left, f"{self.bridge_data.max_context_length}")
         self.print(self.main, row_total + 2, col_mid, f"{self.seconds_to_timestring(self.total_uptime)}")
         self.print(self.main, row_total + 2, col_right, f"{self.total_failed_jobs}")
 
+        self.print(self.main, row_horde + 1, col_left + 4, f"{self.model_jobs}")
         self.print(self.main, row_horde + 1, col_mid, f"{self.queued_requests}")
         self.print(self.main, row_horde + 1, col_right, f"{self.seconds_to_timestring(self.queue_time)}")
 
+        self.print(self.main, row_horde + 2, col_left + 4, f"{self.model_eta}")
         self.print(self.main, row_horde + 2, col_mid, f"{self.worker_count}")
         self.print(self.main, row_horde + 2, col_right, f"{self.thread_count}")
+
+        self.print(self.main, row_horde + 3, col_left + 4, f"{self.model_threads}")
 
         inputs = [
             "(m)aintenance",
@@ -501,22 +514,6 @@ class TerminalUI:
         x = self.print_switch(y, x, inputs[5], False)
         x = self.print_switch(y, x, inputs[6], False)
 
-        # Display download progress bar if any
-        if self.download_total:
-            y = row_horde + 3
-            x = 2
-            self.print(self.main, y, x, self.download_label)
-            x += len(self.download_label) + 1
-            percentage_done = self.download_current / self.download_total
-            done_in_chars = round((self.width - (x + 2)) * percentage_done)
-            progress = TerminalUI.ART["progress"] * done_in_chars
-            colour = curses.color_pair(TerminalUI.COLOUR_GREEN)
-            self.print(self.main, y, x, progress, colour)
-        else:
-            y = row_horde + 3
-            x = 2
-            clearline = " " * (self.width - (x + 2))
-            self.print(self.main, y, x, clearline)
 
     def fit_output_to_term(self, output):
         # How many lines of output can we fit, after line wrapping?
@@ -616,7 +613,7 @@ class TerminalUI:
                     else:
                         pass
                         # # Our worker is not yet in the worker results from the API (cache delay)
-                        # logger.warning("Waiting for the AI Horde to acknowledge this worker to fetch worker ID")
+                        logger.warning("Waiting for Worker ID from the AI Horde")
                 else:
                     logger.warning(f"Failed to get worker ID {r.status_code}")
                 time.sleep(5)
@@ -642,6 +639,8 @@ class TerminalUI:
             if not self.worker_id:
                 return
             worker_URL = f"{self.url}/api/v2/workers/{self.worker_id}"
+
+            # request worker data from horde API
             try:
                 r = requests.get(worker_URL, headers={"client-agent": TerminalUI.CLIENT_AGENT}, timeout=5)
             except requests.exceptions.Timeout:
@@ -664,10 +663,62 @@ class TerminalUI:
             self.threads = data.get("threads", 0)
             self.total_uptime = data.get("uptime", 0)
             self.total_failed_jobs = data.get("uncompleted_jobs", 0)
-            #            if self.scribe_worker and data.get("models"):
-            self.total_models = data.get("models")[0]
+            self.modelname = data.get("models")[0]
+
+            # Get model queue stats
+            if self.modelname == 'Pending' or not self.worker_id:
+                # logger.info(f"Skipping model info API call")
+                return
+            # Must double encode forward slashes in model names for this horde API call
+            modelname_singleenc = parse.quote(self.modelname, safe='')
+            modelname_doubleenc = parse.quote(modelname_singleenc, safe='')
+            models_url = f"{self.url}/api/v2/status/models/{modelname_doubleenc}"        
+            try:
+                r_models = requests.get(models_url, headers={"client-agent": TerminalUI.CLIENT_AGENT}, timeout=5)
+            except requests.exceptions.Timeout:
+                return
+            except requests.exceptions.RequestException as ex:
+                logger.warning(f"Models info API request failed {ex}")
+                return
+            if not r_models.ok:
+                logger.warning(f"Calling Models information API failed ({r_models.status_code})")
+                return
+            models_json = r_models.json()
+            self.model_jobs = models_json[0].get("jobs", 0)
+            self.model_eta = models_json[0].get("eta", 0)
+            self.model_threads = models_json[0].get("count", 0)
         except Exception as ex:
             logger.warning(str(ex))
+
+    # def get_remote_model_info(self):
+    #     # request model data from horde API
+    #     try:
+    #         if self.modelname == 'Pending' or not self.worker_id:
+    #             # logger.info(f"Skipping model info API call")
+    #             return
+
+    #         # Must double encode forward slashes in model names for this horde API call
+    #         modelname_singleenc = parse.quote(self.modelname, safe='')
+    #         modelname_doubleenc = parse.quote(modelname_singleenc, safe='')
+    #         url = f"{self.url}/api/v2/status/models/{modelname_doubleenc}"        
+
+    #         logger.info(f"Models API call - {url}")
+    #         try:
+    #             r_model = requests.get(url, headers={"client-agent": TerminalUI.CLIENT_AGENT}, timeout=5)
+    #         except requests.exceptions.Timeout:
+    #             self.modelname = 'Pending'
+    #             return
+    #         except requests.exceptions.RequestException as ex:
+    #             logger.warning(f"Models info API request failed {ex}")
+    #             return
+    #         if not r_model.ok:
+    #             logger.warning(f"Calling Models information API failed ({r_model.status_code})")
+    #             return
+    #         models_json = r_model.json()
+    #         self.model_jobs = models_json("jobs", 0)
+    #         self.model_eta = models_json("eta", 0)
+    #     except Exception as ex:
+    #         logger.warning(str(ex))
 
     def get_remote_horde_stats(self):
         try:
@@ -681,6 +732,7 @@ class TerminalUI:
             if not r.ok:
                 logger.warning(f"Calling AI Horde stats API failed ({r.status_code})")
                 return
+
             data = r.json()
             self.queued_requests = int(data.get("queued_requests", 0))
             self.worker_count = int(data.get("worker_count", 1))
@@ -704,6 +756,11 @@ class TerminalUI:
             self.last_stats_refresh = time.time()
             if (self._worker_info_thread and not self._worker_info_thread.is_alive()) or not self._worker_info_thread:
                 self._worker_info_thread = threading.Thread(target=self.get_remote_worker_info, daemon=True).start()
+
+        # if time.time() - self.last_model_stats_refresh > TerminalUI.REMOTE_MODEL_STATS_REFRESH:
+        #     self.last_model_stats_refresh = time.time()
+        #     if (self._worker_model_info_thread and not self._worker_model_info_thread.is_alive()) or not self._worker_model_info_thread:
+        #         self._worker_model_info_thread = threading.Thread(target=self.get_remote_model_info, daemon=True).start()
 
         if time.time() - self.last_horde_stats_refresh > TerminalUI.REMOTE_HORDE_STATS_REFRESH:
             self.last_horde_stats_refresh = time.time()

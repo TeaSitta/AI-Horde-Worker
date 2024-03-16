@@ -18,8 +18,7 @@ class BridgeData:
 
     def __init__(self):
         random.seed()
-        # I have to pass the args from the extended class, as the framework class doesn't
-        # know what kind of polymorphism this worker is using
+        # I have to pass the args from the extended class
         self.args = args
 
         # If there is a YAML config file, load it
@@ -44,7 +43,7 @@ class BridgeData:
         self.kai_url = "http://localhost:5000"
         self.max_length = int(os.environ.get("HORDE_MAX_LENGTH", "80"))
         self.max_context_length = int(os.environ.get("HORDE_MAX_CONTEXT_LENGTH", "1024"))
-        self.branded_model = os.environ.get("HORDE_BRANDED_MODEL", "false") == "true"
+
         self.softprompts = {}
         self.current_softprompt = None
 

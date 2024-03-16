@@ -1,5 +1,5 @@
 """Bridge Stats Tracker"""
-import json
+# import json
 import threading
 import time
 from collections import deque
@@ -26,23 +26,23 @@ class BridgeStats:
         with self._mutex:
             self.pop_record.append((node, pop_time, time.time()))
 
-            # only keep pop stats for an hour
+            # only keep pop stats for 5 minutes
             now = time.time()
-            too_old = now - 3600
+            too_old = now - 300
             while self.pop_record and self.pop_record[0][2] < too_old:
                 self.pop_record.popleft()
 
             # Calculate some facts
             recent = now - (60 * 5)
-            average_1_hour = (
-                sum(poptime for _, poptime, _ in self.pop_record) / len(self.pop_record) if self.pop_record else 0
-            )
-            data_5_mins = [poptime for _, poptime, when in self.pop_record if when > recent]
+            # average_1_hour = (
+            #     sum(poptime for _, poptime, _ in self.pop_record) / len(self.pop_record) if self.pop_record else 0
+            # )
+            data_5_mins = [poptime for _, poptime, when in self.pop_record if when >= recent]
             average_5_mins = sum(data_5_mins) / len(data_5_mins) if data_5_mins else 0
 
             if self.pop_record:
                 self.stats["pop_time_avg_5_mins"] = round(average_5_mins, 2)
-                self.stats["pop_time_avg_1_hour"] = round(average_1_hour, 2)
+                # self.stats["pop_time_avg_1_hour"] = round(average_1_hour, 2)
 
     def update_inference_stats(self, model_name, kudos):
         """Updates the stats for a model inference"""
@@ -79,10 +79,10 @@ class BridgeStats:
                 self.stats["jobs_per_hour"] = round(jobs_per_hour)
                 self.stats["avg_kudos_per_job"] = round(total_kudos / jobs_per_hour, 1)
 
-    def get_pretty_stats(self):
-        """Returns a pretty string of the stats"""
-        with self._mutex:
-            return json.dumps(self.stats, indent=4)
+    # def get_pretty_stats(self):
+    #     """Returns a pretty string of the stats"""
+    #     with self._mutex:
+    #         return json.dumps(self.stats, indent=4)
 
 
 bridge_stats = BridgeStats()
