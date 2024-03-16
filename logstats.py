@@ -7,7 +7,7 @@ import glob
 import mmap
 import re
 
-# from tqdm import tqdm
+from tqdm import tqdm
 
 # Location of stable horde worker bridge log
 LOG_FILE = "logs/bridge*.log"
@@ -78,8 +78,8 @@ class LogStats:
 
     def parse_log(self):
         # Identify all log files and total number of log lines
-#        total_log_lines = sum(self.get_num_lines(logfile) for logfile in glob.glob(self.logfile))
-#        progress = tqdm(total=total_log_lines, leave=True, unit=" lines", unit_scale=True)
+        total_log_lines = sum(self.get_num_lines(logfile) for logfile in glob.glob(self.logfile))
+        progress = tqdm(total=total_log_lines, leave=True, unit=" lines", unit_scale=True)
         for logfile in glob.glob(self.logfile):
             with open(logfile, "rt") as infile:
                 for line in infile:
@@ -124,6 +124,9 @@ class LogStats:
                         self.gendata["Kudos"] = [self.gendata["Kudos"][0] + float(kudos), self.gendata["Kudos"][1] +1, self.gendata["Kudos"][2]]
                         self.gendata["Generation Time"] = [self.gendata["Generation Time"][0] + float(proc), self.gendata["Generation Time"][1] + 1, self.gendata["Generation Time"][2]]
 
+                progress.update()
+                print()
+
 
 
 
@@ -133,25 +136,21 @@ class LogStats:
 
         # pop times
         total = sum(v[1] for k, v in self.data.items())
-        print(f"Average node pop times (out of {total} pops in total)")
+        tf = "{:,}".format(total)
+        print(f"Average node pop times (out of {tf} pops in total)")
         for k, v in self.data.items():
             print(f"{k.split(':')[0]:15} {round(v[0]/v[1], 2)} secs {v[1]:-8} jobs from this node")
             total += v[1]
-        print("--------------------------------------------------")
+        print("----------------------------------------------------------------------")
 
         # job data
+
         for k, v in self.gendata.items():
-            print("{:<15} {} {:>9} {:>18} {} {}".format(k, 'Total:', round(v[0]), 'Job Average:', round(v[0]/v[1]), v[2] ))
+            tf = "{:,}".format(round(v[0]))
+            af = "{:,}".format(round(v[0]/v[1]))
+
+            print("{:<15} {} {:<12} {:>15} {} {}".format(k, 'Total:', tf, 'Job Average:', af, v[2] ))
           
-
-        # req_average = 
-        # ctx_average = 
-        # prmt_average =
-        # payload_average = 
-        # kudos_average = 
-        # gen_time_average =             
-
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate local worker job and pop statistics from logs")
@@ -172,4 +171,6 @@ if __name__ == "__main__":
 
 
     logs = LogStats(period)
+    print()
     logs.print_stats()
+    print()
