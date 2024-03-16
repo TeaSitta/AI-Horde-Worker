@@ -118,7 +118,7 @@ class TerminalUI:
         self.output = DequeOutputCollector()
         self.worker_id = None
         threading.Thread(target=self.load_worker_id, daemon=True).start()
-        self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 3)
+        self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 15)
         self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 20)
         self.maintenance_mode = False
         self.gpu = GPUInfo()
