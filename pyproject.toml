@@ -2,7 +2,7 @@
 line-length = 250
 lint.select = [
     "A",    # flake8-builtins
-    "I",    # isort 
+#    "I",    # isort
     # "S",    # Bandit
     "F",    # pyflakes
     "E",    # pycodestyle errors
@@ -12,22 +12,23 @@ lint.select = [
     "YTT",  # flake8-2020
     # "BLE",    # flake8-blind-except
     # "B",    # flake8-bugbear
-    "COM",  # flake8-commas
+#    "COM",  # flake8-commas
     "C4",   # flake8-comprehensions
     # "G",    # flake8-logging-format
     "INP",  # flake8-no-pep420
     "PIE",  # flake8-pie
     # "T20",  # flake8-print
     # "UP",   # pyupgrade
-    "RSE",  # flake8-raise 
+    "RSE",  # flake8-raise
     "RET",  # flake8-return
     # "SLF",  # flake8-self
     "SIM",  # flake8-simplify
     "ARG",  # flake8-unused-arguments
-    # "TRY",  # tryceratops 
+    # "TRY",  # tryceratops
     "RUF100"
 ]
 lint.ignore = [
     "A002", # Argument `x` is shadowing a python builtin
     "A003", # Class attribute `x` is shadowing a python builtin
+    "E402", # Imports
 ]
