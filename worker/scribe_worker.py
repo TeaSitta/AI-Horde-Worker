@@ -1,5 +1,5 @@
 """This is the worker, it's the main workhorse that deals with getting requests, and spawning data processing"""
-import sys
+
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -43,8 +43,13 @@ class ScribeWorker:
             return
 
         # Don't allow this if auto-downloading is not enabled as how will the user see download prompts?
-        if hasattr(self.bridge_data, "always_download") and not self.bridge_data.always_download:
-            logger.warning("Terminal UI can not be enabled without also enabling 'always_download'")
+        if (
+            hasattr(self.bridge_data, "always_download")
+            and not self.bridge_data.always_download
+        ):
+            logger.warning(
+                "Terminal UI can not be enabled without also enabling 'always_download'"
+            )
         else:
             from worker.ui import TerminalUI
 
@@ -67,38 +72,49 @@ class ScribeWorker:
         self.reload_data()
         self.exit_rc = 1
 
-        self.consecutive_failed_jobs = 0  # Moved out of the loop to capture failure across soft-restarts
+        self.consecutive_failed_jobs = (
+            0  # Moved out of the loop to capture failure across soft-restarts
+        )
 
-        while True:  # This is just to allow it to loop through this and handle shutdowns correctly
+        # This is just to allow it to loop through this and handle shutdowns correctly
+        while True:
             if self.should_restart:
                 self.should_restart = False
                 self.on_restart()
                 self.run_count = 0
 
-            with ThreadPoolExecutor(max_workers=self.bridge_data.max_threads) as self.executor:
+            with ThreadPoolExecutor(
+                max_workers=self.bridge_data.max_threads
+            ) as self.executor:
                 while not self.should_stop:
                     if self.should_restart:
                         self.executor.shutdown(wait=False)
                         self.should_restart = True
                         break
                     try:
-                        if self.ui and not self.ui.is_alive():
+                        # if self.ui and not self.ui.is_alive():  # Does not seem to be used
+                        if not self.ui.is_alive():
                             # UI Exited, we should probably exit
+                            self.should_stop = True
                             raise KeyboardInterrupt
                         self.process_jobs()
-                    except KeyboardInterrupt:
+                    except KeyboardInterrupt:  # This is what exits on old ver
                         self.should_stop = True
                         self.exit_rc = 0
                         break
                 if self.should_stop or self.soft_restarts > 15:
                     if self.soft_restarts > 15:
-                        logger.error("Too many soft restarts, exiting the worker. Please review your config.")
-                        logger.error("You can try asking for help in the official discord if this persists.")
-                    logger.init("Worker", status="Shutting Down")
+                        logger.error(
+                            "Too many soft restarts, exiting the worker. Please review your config."
+                        )
+                        logger.error(
+                            "You can try asking for help in the official discord if this persists."
+                        )
+                    logger.init("Worker shutting down", status="Shutting Down")
                     if self.is_daemon:
                         return
                     else:  # noqa: RET505
-                        sys.exit(self.exit_rc)
+                        break
 
     def process_jobs(self):
         if time.time() - self.last_config_reload > 60:
@@ -110,7 +126,9 @@ class ScribeWorker:
         if len(self.waiting_jobs) < self.bridge_data.queue_size:
             self.add_job_to_queue()
 
-        while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
+        while (
+            len(self.running_jobs) < self.bridge_data.max_threads and self.start_job()
+        ):
             pass
 
         # Check if any jobs are done
@@ -160,6 +178,10 @@ class ScribeWorker:
                 job = jobs[0]
             if self.should_stop:
                 return False
+            # If UI has stopped we should break
+            if not self.ui.is_alive():
+                self.should_stop = True
+                return False
         elif len(self.waiting_jobs) > 0:
             job = self.waiting_jobs.pop(0)
         else:
@@ -167,7 +189,9 @@ class ScribeWorker:
             return False
         # Run the job
         if job:
-            self.running_jobs.append((self.executor.submit(job.start_job), time.monotonic(), job))
+            self.running_jobs.append(
+                (self.executor.submit(job.start_job), time.monotonic(), job)
+            )
             logger.debug("New job processing")
         else:
             logger.debug("No new job to start")
@@ -179,25 +203,31 @@ class ScribeWorker:
         if job_thread.done():
             if job_thread.exception(timeout=1) or job.is_faulted():
                 if job_thread.exception(timeout=1):
-                    logger.error("Job failed with exception, {}", job_thread.exception())
+                    logger.error(
+                        "Job failed with exception, {}", job_thread.exception()
+                    )
                     logger.exception(job_thread.exception())
                 if job.is_out_of_memory():
                     logger.error("Job failed with out of memory error")
                     self.out_of_memory_jobs += 1
                 if self.out_of_memory_jobs >= 10:
-                    logger.critical("Too many jobs have failed with out of memory error. Aborting!")
+                    logger.critical(
+                        "Too many jobs have failed with out of memory error. Aborting!"
+                    )
                     self.should_stop = True
                     return
                 if self.consecutive_executor_restarts > 0:
                     logger.critical(
-                        "Worker keeps crashing after thread executor restart. " "Cannot be salvaged. Aborting!",
+                        "Worker keeps crashing after thread executor restart. "
+                        "Cannot be salvaged. Aborting!",
                     )
                     self.should_stop = True
                     return
                 self.consecutive_failed_jobs += 1
                 if self.consecutive_failed_jobs >= 5:
                     logger.critical(
-                        "Too many consecutive jobs have failed. " "Restarting thread executor and hope we recover...",
+                        "Too many consecutive jobs have failed. "
+                        "Restarting thread executor and hope we recover...",
                     )
                     self.should_restart = True
                     self.consecutive_executor_restarts += 1
@@ -206,19 +236,25 @@ class ScribeWorker:
                 self.consecutive_failed_jobs = 0
                 self.consecutive_executor_restarts = 0
             self.run_count += 1
-            logger.debug(f"Job finished successfully in {runtime:.3f}s (Total Completed: {self.run_count})")
+            logger.debug(
+                f"Job finished successfully in {runtime:.3f}s (Total Completed: {self.run_count})"
+            )
             self.running_jobs.remove((job_thread, start_time, job))
             return
 
         # check if any job has run for more than 180 seconds
         if job_thread.running() and job.is_stale():
-            logger.warning("Restarting all jobs, as a job is stale " f": {runtime:.3f}s")
+            logger.warning(
+                "Restarting all jobs, as a job is stale " f": {runtime:.3f}s"
+            )
             for (
                 inner_job_thread,
                 inner_start_time,
                 inner_job,
             ) in self.running_jobs:  # Sometimes it's already removed
-                self.running_jobs.remove((inner_job_thread, inner_start_time, inner_job))
+                self.running_jobs.remove(
+                    (inner_job_thread, inner_start_time, inner_job)
+                )
                 job_thread.cancel()
             self.should_restart = True
             return
@@ -226,7 +262,8 @@ class ScribeWorker:
         # Check periodically if any interesting stats should be announced
         if (
             self.bridge_data.stats_output_frequency
-            and (time.time() - self.last_stats_time) > self.bridge_data.stats_output_frequency
+            and (time.time() - self.last_stats_time)
+            > self.bridge_data.stats_output_frequency
         ):
             bonus_per_hour = self.get_uptime_kudos()
             self.last_stats_time = time.time()
