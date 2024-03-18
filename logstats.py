@@ -20,37 +20,27 @@ PERIOD_HOUR = 3
 
 
 # regex to identify model lines
-''' DEBUG      | 2024-03-15 19:15:12.536303 | worker.jobs:horde_pop:379  - Job pop took 0.418647 (node: medusa:7001:4.32.4)
-'''
 POP_REGEX = re.compile(r".*(\d\d\d\d-\d\d-\d\d \d\d:\d\d).* Job pop took (\d+\.\d+).*node: (.*)\)")
-
-''' DEBUG      | 2024-03-15 19:15:00.917262 | worker.jobs:submit_job:117 - posting payload with size of 0.5 kb
- '''
 JOB_PAYLOAD_REGEX = re.compile(r".*(\d\d\d\d-\d\d-\d\d \d\d:\d\d).* posting payload with size of.* (.*) kb")
-
-''' worker.jobs:start_job:238 - Starting generation for id 
-b40fc53d-fb39-49a7-bccf-0987ed5f6813: 
-aphrodite/NeverSleep/Noromaid-13b-v0.3 
-@ 512:2048 Prompt length is 3596 characters 
-'''
 JOB_START_GEN_REGEX = re.compile(r".*(\d\d\d\d-\d\d-\d\d \d\d:\d\d).* @ (.*):(.*) Prompt length is (.*) .*")
+JOB_SUB_TIME_REGEX = re.compile(
+    r".*(\d\d\d\d-\d\d-\d\d \d\d:\d\d).*contributed for (.*). Job took (.*) \
+      seconds since queued and (.*) since start.",
+)
 
-'''2024-03-15 19:15:29.512450 | worker.jobs:submit_job:170 - Submitted job with id ee2dd6a4-8925-4c7d-80ef-49ae01e01c2d and contributed for 25.0. Job took 17.0 seconds since queued and 17.0 since start.
-'''
-JOB_SUB_TIME_REGEX = re.compile(r".*(\d\d\d\d-\d\d-\d\d \d\d:\d\d).*contributed for (.*). Job took (.*) seconds since queued and (.*) since start.")
 
 class LogStats:
-    def __init__(self, period=PERIOD_ALL, logfile=LOG_FILE):
+    def __init__(self, period=PERIOD_ALL, logfile=LOG_FILE) -> None:
         self.logfile = logfile
         self.period = period
         self.data = {}
         self.gendata = {
-            "Gen Size": [float(0), 0, 'tokens'],
-            "Context Window": [float(0), 0, 'tokens'],
-            "Prompt Size": [float(0), 0, 'chars'],
-            "Sent Payload": [float(0), 0, 'KB'],
-            "Kudos": [float(0), 0, 'kudos'],
-            "Generation Time": [float(0), 0, 's']
+            "Gen Size": [float(0), 0, "tokens"],
+            "Context Window": [float(0), 0, "tokens"],
+            "Prompt Size": [float(0), 0, "chars"],
+            "Sent Payload": [float(0), 0, "KB"],
+            "Kudos": [float(0), 0, "kudos"],
+            "Generation Time": [float(0), 0, "s"],
         }
 
     def get_date(self):
@@ -81,12 +71,12 @@ class LogStats:
         total_log_lines = sum(self.get_num_lines(logfile) for logfile in glob.glob(self.logfile))
         progress = tqdm(total=total_log_lines, leave=True, unit=" lines", unit_scale=True)
         for logfile in glob.glob(self.logfile):
-            with open(logfile, "rt") as infile:
+            with open(logfile) as infile:
                 for line in infile:
                     # Match and process the job pop line
                     if regex := POP_REGEX.match(line):
 
-                        ''' WHAT IS THIS USED FOR? '''
+                        """WHAT IS THIS USED FOR?"""
                         if self.period and self.get_date() not in regex.group(1):
                             continue
 
@@ -94,41 +84,61 @@ class LogStats:
                         poptime = regex.group(2)
                         api_node = regex.group(3).split(":")[0]
                         if api_node in self.data:
-                            
+
                             self.data[api_node] = [self.data[api_node][0] + float(poptime), self.data[api_node][1] + 1]
-                            
+
                         else:
                             self.data[api_node] = [float(poptime), 1]
-                    
+
                     # Match for gen/prompt request and prompt character length ( /3 ~ 'tokens' ?)
                     if regex := JOB_START_GEN_REGEX.match(line):
                         req = regex.group(2)
                         ctx = regex.group(3)
                         prmt = regex.group(4)
 
-                        self.gendata["Gen Size"] = [self.gendata["Gen Size"][0] + float(req), self.gendata["Gen Size"][1] +1, self.gendata["Gen Size"][2]]
-                        self.gendata["Context Window"] = [self.gendata["Context Window"][0] + float(ctx), self.gendata["Context Window"][1] + 1, self.gendata["Context Window"][2]]
-                        self.gendata["Prompt Size"] = [self.gendata["Prompt Size"][0] + float(prmt), self.gendata["Prompt Size"][1] + 1, self.gendata["Prompt Size"][2]]
-                           
+                        self.gendata["Gen Size"] = [
+                            self.gendata["Gen Size"][0] + float(req),
+                            self.gendata["Gen Size"][1] + 1,
+                            self.gendata["Gen Size"][2],
+                        ]
+                        self.gendata["Context Window"] = [
+                            self.gendata["Context Window"][0] + float(ctx),
+                            self.gendata["Context Window"][1] + 1,
+                            self.gendata["Context Window"][2],
+                        ]
+                        self.gendata["Prompt Size"] = [
+                            self.gendata["Prompt Size"][0] + float(prmt),
+                            self.gendata["Prompt Size"][1] + 1,
+                            self.gendata["Prompt Size"][2],
+                        ]
+
                     # Match for payload size
                     if regex := JOB_PAYLOAD_REGEX.match(line):
                         pld = regex.group(2)
-                        self.gendata['Sent Payload'] = [self.gendata['Sent Payload'][0] + float(pld), self.gendata['Sent Payload'][1] + 1, self.gendata['Sent Payload'][2]]
- 
+                        self.gendata["Sent Payload"] = [
+                            self.gendata["Sent Payload"][0] + float(pld),
+                            self.gendata["Sent Payload"][1] + 1,
+                            self.gendata["Sent Payload"][2],
+                        ]
 
                     # Match for job submission kudos and processing time
                     if regex := JOB_SUB_TIME_REGEX.match(line):
                         kudos = regex.group(2)
                         proc = regex.group(4)
 
-                        self.gendata["Kudos"] = [self.gendata["Kudos"][0] + float(kudos), self.gendata["Kudos"][1] +1, self.gendata["Kudos"][2]]
-                        self.gendata["Generation Time"] = [self.gendata["Generation Time"][0] + float(proc), self.gendata["Generation Time"][1] + 1, self.gendata["Generation Time"][2]]
+                        self.gendata["Kudos"] = [
+                            self.gendata["Kudos"][0] + float(kudos),
+                            self.gendata["Kudos"][1] + 1,
+                            self.gendata["Kudos"][2],
+                        ]
+                        self.gendata["Generation Time"] = [
+                            self.gendata["Generation Time"][0] + float(proc),
+                            self.gendata["Generation Time"][1] + 1,
+                            self.gendata["Generation Time"][2],
+                        ]
 
                 progress.update()
                 print()
-
-
-
 
     def print_stats(self):
         # Parse our log file if we haven't done that yet
@@ -136,7 +146,7 @@ class LogStats:
 
         # pop times
         total = sum(v[1] for k, v in self.data.items())
-        tf = "{:,}".format(total)
+        tf = f"{total:,}"
         print(f"Average node pop times (out of {tf} pops in total)")
         for k, v in self.data.items():
             print(f"{k.split(':')[0]:15} {round(v[0]/v[1], 2)} secs {v[1]:-8} jobs from this node")
@@ -146,16 +156,28 @@ class LogStats:
         # job data
 
         for k, v in self.gendata.items():
-            tf = "{:,}".format(round(v[0]))
-            af = "{:,}".format(round(v[0]/v[1]))
+            tf = f"{round(v[0]):,}"
+            af = f"{round(v[0] / v[1]):,}"
 
-            print("{:<15} {} {:<12} {:>15} {} {}".format(k, 'Total:', tf, 'Job Average:', af, v[2] ))
-          
+            print("{:<15} {} {:<12} {:>15} {} {}".format(k, "Total:", tf, "Job Average:", af, v[2]))
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate local worker job and pop statistics from logs")
-    parser.add_argument("-pop", "--pop", help="Generate horde worker pop stats only", action="store_true", default="True")
-    parser.add_argument("-jobs", "--jobs", help="Generate horde worker job stats only", action="store_true", default="True")
+    parser.add_argument(
+        "-pop",
+        "--pop",
+        help="Generate horde worker pop stats only",
+        action="store_true",
+        default="True",
+    )
+    parser.add_argument(
+        "-jobs",
+        "--jobs",
+        help="Generate horde worker job stats only",
+        action="store_true",
+        default="True",
+    )
     parser.add_argument("-t", "--today", help="Statistics for today only", action="store_true")
     parser.add_argument("-y", "--yesterday", help="Statistics for yesterday only", action="store_true")
     parser.add_argument("-1", "--hour", help="Statistics for last hour only", action="store_true")
@@ -168,7 +190,6 @@ if __name__ == "__main__":
         period = PERIOD_YESTERDAY
     elif args["hour"]:
         period = PERIOD_HOUR
-
 
     logs = LogStats(period)
     print()
