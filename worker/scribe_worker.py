@@ -1,5 +1,5 @@
 """This is the worker, it's the main workhorse that deals with getting requests, and spawning data processing"""
-import sys
+
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -10,7 +10,7 @@ from worker.stats import bridge_stats
 
 
 class ScribeWorker:
-    def __init__(self, this_bridge_data):
+    def __init__(self, this_bridge_data) -> None:
         self.bridge_data = this_bridge_data
         self.running_jobs = []
         self.waiting_jobs = []
@@ -33,7 +33,7 @@ class ScribeWorker:
         self.JobClass = ScribeHordeJob
         self.startup_terminal_ui()
 
-    def startup_terminal_ui(self):
+    def startup_terminal_ui(self) -> None:
         # Setup UI if requested
         in_notebook = hasattr(__builtins__, "__IPYTHON__")
         if in_notebook:
@@ -42,34 +42,32 @@ class ScribeWorker:
         if self.bridge_data.disable_terminal_ui:
             return
 
-        # Don't allow this if auto-downloading is not enabled as how will the user see download prompts?
-        if hasattr(self.bridge_data, "always_download") and not self.bridge_data.always_download:
-            logger.warning("Terminal UI can not be enabled without also enabling 'always_download'")
-        else:
-            from worker.ui import TerminalUI
+        from worker.ui import TerminalUI
 
-            self.ui_class = TerminalUI(self.bridge_data)
-            self.ui = threading.Thread(target=self.ui_class.run, daemon=True)
-            self.ui.start()
+        self.ui_class = TerminalUI(self.bridge_data)
+        self.ui = threading.Thread(target=self.ui_class.run, daemon=True)
+        self.ui.start()
 
-    def on_restart(self):
+    def on_restart(self) -> None:
         """Called when the worker loop is restarted."""
         self.soft_restarts += 1
 
     @logger.catch(reraise=True)
-    def stop(self):
+    def stop(self) -> None:
         self.should_stop = True
         self.ui_class.stop()
         logger.info("Stop methods called")
 
     @logger.catch(reraise=True)
-    def start(self):
+    def start(self) -> None:
         self.reload_data()
         self.exit_rc = 1
 
-        self.consecutive_failed_jobs = 0  # Moved out of the loop to capture failure across soft-restarts
+        # Moved out of the loop to capture failure across soft-restarts
+        self.consecutive_failed_jobs = 0
 
-        while True:  # This is just to allow it to loop through this and handle shutdowns correctly
+        # This is just to allow it to loop through this and handle shutdowns correctly
+        while True:
             if self.should_restart:
                 self.should_restart = False
                 self.on_restart()
@@ -82,11 +80,13 @@ class ScribeWorker:
                         self.should_restart = True
                         break
                     try:
-                        if self.ui and not self.ui.is_alive():
+                        # if self.ui and not self.ui.is_alive():  # Does not seem to be used
+                        if not self.ui.is_alive():
                             # UI Exited, we should probably exit
+                            self.should_stop = True
                             raise KeyboardInterrupt
                         self.process_jobs()
-                    except KeyboardInterrupt:
+                    except KeyboardInterrupt:  # This is what exits on old ver
                         self.should_stop = True
                         self.exit_rc = 0
                         break
@@ -94,13 +94,13 @@ class ScribeWorker:
                     if self.soft_restarts > 15:
                         logger.error("Too many soft restarts, exiting the worker. Please review your config.")
                         logger.error("You can try asking for help in the official discord if this persists.")
-                    logger.init("Worker", status="Shutting Down")
+                    logger.init("Worker shutting down", status="Shutting Down")
                     if self.is_daemon:
                         return
                     else:  # noqa: RET505
-                        sys.exit(self.exit_rc)
+                        break
 
-    def process_jobs(self):
+    def process_jobs(self) -> None:
         if time.time() - self.last_config_reload > 60:
             self.reload_bridge_data()
         if not self.can_process_jobs():
@@ -130,7 +130,7 @@ class ScribeWorker:
             self.last_config_reload = time.time() - 55
         return kai_avail
 
-    def add_job_to_queue(self):
+    def add_job_to_queue(self) -> None:
         """Picks up a job from the horde and adds it to the local queue
         Returns the job object created, if any"""
         if jobs := self.pop_job():
@@ -149,7 +149,7 @@ class ScribeWorker:
             new_jobs.append(new_job)
         return new_jobs
 
-    def start_job(self):
+    def start_job(self) -> bool:
         """Starts a job previously picked up from the horde
         Returns True to continue starting jobs until queue is full
         Returns False to break out of the loop and poll the horde again"""
@@ -159,6 +159,10 @@ class ScribeWorker:
             if jobs := self.pop_job():
                 job = jobs[0]
             if self.should_stop:
+                return False
+            # If UI has stopped we should break
+            if not self.ui.is_alive():
+                self.should_stop = True
                 return False
         elif len(self.waiting_jobs) > 0:
             job = self.waiting_jobs.pop(0)
@@ -173,7 +177,7 @@ class ScribeWorker:
             logger.debug("No new job to start")
         return True
 
-    def check_running_job_status(self, job_thread, start_time, job):
+    def check_running_job_status(self, job_thread, start_time, job) -> None:
         """Polls the AI Horde for new jobs and creates a Job class"""
         runtime = time.monotonic() - start_time
         if job_thread.done():
@@ -233,20 +237,20 @@ class ScribeWorker:
             kph = bridge_stats.stats.get("kudos_per_hour", 0) + bonus_per_hour
             logger.info(f"Estimated average kudos per hour: {kph}")
 
-    def get_uptime_kudos(self):
+    def get_uptime_kudos(self) -> int:
         """Returns the expected uptime kudos for this worker
         This should be extended for each type of worker
         """
         # *6 as this calc is per 10 minutes of uptime
         return 50 * 6
 
-    def reload_data(self):
+    def reload_data(self) -> None:
         """This is just a utility function to reload the configuration"""
         # Daemons are fed the configuration externally
         if not self.is_daemon:
             self.bridge_data.reload_data()
 
-    def reload_bridge_data(self):
+    def reload_bridge_data(self) -> None:
         self.reload_data()
         self.executor._max_workers = self.bridge_data.max_threads
         self.last_config_reload = time.time()

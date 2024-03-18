@@ -1,4 +1,5 @@
 """Get and process a job from the horde"""
+
 import contextlib
 import copy
 import json
@@ -9,7 +10,7 @@ import traceback
 
 import requests
 
-from worker.consts import BRIDGE_VERSION
+from worker.consts import RELEASE_VERSION
 from worker.enums import JobStatus
 from worker.logger import logger
 from worker.stats import bridge_stats
@@ -20,7 +21,7 @@ class HordeJob:
 
     retry_interval = 1
 
-    def __init__(self, bd, pop):
+    def __init__(self, bd, pop) -> None:
         self.bridge_data = copy.deepcopy(bd)
         self.pop = pop
         self.loop_retry = 0
@@ -63,7 +64,7 @@ class HordeJob:
         return self.status in [JobStatus.OUT_OF_MEMORY]
 
     @logger.catch(reraise=True)
-    def start_job(self):
+    def start_job(self) -> None:
         """Starts a job from a pop request
         This method MUST be extended with the specific logic for this worker
         At the end it MUST create a new thread to submit the results to the horde"""
@@ -84,14 +85,14 @@ class HordeJob:
         # Continue with the specific worker logic from here
         # At the end, you must call self.start_submit_thread()
 
-    def start_submit_thread(self):
+    def start_submit_thread(self) -> None:
         """Starts a thread with submit_job so that we don't wait for the upload to complete
         # Not a daemon, so that it can survive after this class is garbage collected"""
         submit_thread = threading.Thread(target=self.submit_job, args=())
         submit_thread.start()
         logger.debug("Finished job in threadpool")
 
-    def submit_job(self, endpoint="/api/v2/generate/text/submit"):
+    def submit_job(self, endpoint="/api/v2/generate/text/submit") -> None:
         """Submits the job to the server to earn our kudos.
         This method MUST be extended with the specific logic for this worker
         At the end it MUST set the job state to DONE"""
@@ -194,15 +195,14 @@ class HordeJob:
                 time.sleep(10)
                 continue
 
-    def prepare_submit_payload(self):
+    def prepare_submit_payload(self) -> None:
         """Should be overriden and prepare a self.submit_dict dictionary with the payload needed
         for this job to be submitted"""
         self.submit_dict = {}
 
 
-# from old worker.jobs.scribe
 class ScribeHordeJob(HordeJob):
-    def __init__(self, bd, pop):
+    def __init__(self, bd, pop) -> None:
         # mm will always be None for the scribe
         super().__init__(bd, pop)
         self.current_model = None
@@ -216,7 +216,7 @@ class ScribeHordeJob(HordeJob):
         self.max_seconds = None
 
     @logger.catch(reraise=True)
-    def start_job(self):
+    def start_job(self) -> None:
         """Starts a Scribe job from a pop request"""
         logger.debug("Starting job in threadpool for model: {}", self.current_model)
 
@@ -338,25 +338,22 @@ class ScribeHordeJob(HordeJob):
             return
         self.start_submit_thread()
 
-    def prepare_submit_payload(self):
+    def prepare_submit_payload(self) -> None:
         self.submit_dict = {
             "id": self.current_id,
             "generation": self.text,
             "seed": self.seed,
         }
-        # if self.censored:
-        #     self.submit_dict["state"] = self.censored
 
-    def post_submit_tasks(self, submit_req):
+    def post_submit_tasks(self, submit_req) -> None:
         bridge_stats.update_inference_stats(self.current_model, submit_req.json()["reward"])
 
 
-# old worker.jobs.poppers
 class JobPopper:
     retry_interval = 1
-    BRIDGE_AGENT = f"AI Horde Worker:{BRIDGE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
+    BRIDGE_AGENT = f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
-    def __init__(self, bd):
+    def __init__(self, bd) -> None:
         self.bridge_data = copy.deepcopy(bd)
         self.pop = None
         self.headers = {"apikey": self.bridge_data.api_key}
@@ -415,7 +412,7 @@ class JobPopper:
             return None
         return [self.pop]
 
-    def report_skipped_info(self):
+    def report_skipped_info(self) -> None:
         job_skipped_info = self.pop.get("skipped")
         if job_skipped_info and len(job_skipped_info):
             self.skipped_info = f" Skipped Info: {job_skipped_info}."
@@ -426,7 +423,7 @@ class JobPopper:
 
 
 class ScribePopper(JobPopper):
-    def __init__(self, bd):
+    def __init__(self, bd) -> None:
         super().__init__(bd)
         self.endpoint = "/api/v2/generate/text/pop"
         # KAI Only ever offers one single model, so we just add it to the Horde's expected array form.

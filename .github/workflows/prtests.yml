@@ -1,0 +1,28 @@
+name: Unstable Tests
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+    paths:
+      - '**.py'
+      - '**.json'
+      - 'tox.ini'
+      - '.github/workflows/prtests.yml'
+      - '.pre-commit-config.yaml'
+      - 'bridgeData_template.yaml'
+      - 'requirements.txt'
+      - 'requirements.dev.txt'
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.0

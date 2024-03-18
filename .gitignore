@@ -154,18 +154,13 @@ creds.py
 
 /test_output/*
 /bridge_generations/*
-z_version_env.tmp
 custom-conda-path.txt
 /bridgeData.py
 /bridgeData.yaml
 /bridgeData.py-old
-src/taming-transformers
-
-/xformers-*
-/bin/
-/ray
-/tmp
-/hordelib
+include/
+logs/*
 .vscode
 lib64
 pyvenv.cfg
+bin/
