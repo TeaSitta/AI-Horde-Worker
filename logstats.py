@@ -141,7 +141,7 @@ class LogStats:
                 print()
 
     def print_stats(self):
-        # Parse our log file if we haven't done that yet
+        # Parse our log files
         self.parse_log()
 
         # pop times
