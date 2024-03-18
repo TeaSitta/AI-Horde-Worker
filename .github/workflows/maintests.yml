@@ -1,0 +1,24 @@
+name: Main Tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.py'
+      - '**.json'
+      - 'tox.ini'
+      - '.github/workflows/prtests.yml'
+      - '.github/workflows/maintests.yml'
+      - '.pre-commit-config.yaml'
+      - 'bridgeData_template.yaml'
+      - 'requirements.txt'
+      - 'requirements.dev.txt'
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
