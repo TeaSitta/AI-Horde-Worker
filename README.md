@@ -42,7 +42,7 @@ Install the dependancies with `pip install -r requirements.txt -U`
 
 From the AI-Horde-Worker directory, run `python horde_scribe_bridge.py`
 
-After starting the bridge your worker should be in maintenance mode. 
+After starting the bridge your worker should be in maintenance mode.
 
 If your KoboldAI inference API is reachable you should see `This worker has been put into maintenance mode by its owner (403)` in the console.
 
@@ -52,7 +52,7 @@ Press m to exit maintenance mode, it may take a few moments after first starting
 
 * First put your worker into maintenance to avoid aborting any ongoing operations. Wait until you see no more jobs running.
 * In the terminal in which it's running, simply press `Ctrl+C` together.
-  
+
 # Updating
 
 Use this approach if you cloned the original repository using `git clone`
@@ -61,5 +61,3 @@ Use this approach if you cloned the original repository using `git clone`
 1. Run `git pull`
 1. If git tells you the `requirements.txt` file has been updated, run `pip install -r requirements.txt -U`
 1. Run `horde_scribe_bridge` script as usual.
-
-

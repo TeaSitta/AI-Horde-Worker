@@ -1,4 +1,5 @@
 """Convenience enums for job status"""
+
 from enum import IntEnum
 
 
