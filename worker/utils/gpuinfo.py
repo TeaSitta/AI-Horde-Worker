@@ -5,7 +5,7 @@ from pynvml.smi import nvidia_smi
 
 
 class GPUInfo:
-    def __init__(self):
+    def __init__(self) -> None:
         self.avg_load = []
         self.avg_temp = []
         self.avg_power = []
@@ -48,13 +48,13 @@ class GPUInfo:
             return len(data.get("gpu", [None]))
         return 0
 
-    def _get_gpu_data(self, device=0):
+    def _get_gpu_data(self, device=0) -> dict:
         with contextlib.suppress(Exception):
             nvsmi = nvidia_smi.getInstance()
             data = nvsmi.DeviceQuery()
             return data.get("gpu", [None])[device]
 
-    def _mem(self, raw):
+    def _mem(self, raw) -> str:
         unit = "GB"
         mem = raw / 1024
         if mem < 1:

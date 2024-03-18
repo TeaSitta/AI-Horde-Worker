@@ -12,7 +12,7 @@ verbosity = 20
 quiet = 0
 
 
-def set_logger_verbosity(count):
+def set_logger_verbosity(count) -> None:
     global verbosity
     # The count comes reversed. So count = 0 means minimum verbosity
     # While count 5 means maximum verbosity
@@ -20,13 +20,13 @@ def set_logger_verbosity(count):
     verbosity = 20 - (count * 10)
 
 
-def quiesce_logger(count):
+def quiesce_logger(count) -> None:
     global quiet
     # The bigger the count, the more silent we want our logger
     quiet = count * 10
 
 
-def is_stdout_log(record):
+def is_stdout_log(record) -> bool:
     if record["level"].name not in STDOUT_LEVELS:
         return False
     if record["level"].no < verbosity + quiet:
@@ -34,7 +34,7 @@ def is_stdout_log(record):
     return True
 
 
-def is_init_log(record):
+def is_init_log(record) -> bool:
     if record["level"].name not in INIT_LEVELS:
         return False
     if record["level"].no < verbosity + quiet:
@@ -42,7 +42,7 @@ def is_init_log(record):
     return True
 
 
-def is_msg_log(record):
+def is_msg_log(record) -> bool:
     if record["level"].name not in MESSAGE_LEVELS:
         return False
     if record["level"].no < verbosity + quiet:
@@ -50,7 +50,7 @@ def is_msg_log(record):
     return True
 
 
-def is_stderr_log(record):
+def is_stderr_log(record) -> bool:
     if record["level"].name in STDOUT_LEVELS + INIT_LEVELS + MESSAGE_LEVELS + STATS_LEVELS:
         return False
     if record["level"].no < verbosity + quiet:
@@ -58,25 +58,25 @@ def is_stderr_log(record):
     return True
 
 
-def is_stats_log(record):
+def is_stats_log(record) -> bool:
     if record["level"].name not in STATS_LEVELS:
         return False
     return True
 
 
-def is_not_stats_log(record):
+def is_not_stats_log(record) -> bool:
     if record["level"].name in STATS_LEVELS:
         return False
     return True
 
 
-def is_trace_log(record):
+def is_trace_log(record) -> bool:
     if record["level"].name not in ["TRACE", "ERROR"]:
         return False
     return True
 
 
-def test_logger():
+def test_logger() -> None:
     logger.generation(
         "This is a generation message\nIt is typically multiline\nThee Lines".encode("unicode_escape").decode("utf-8"),
     )

@@ -13,22 +13,3 @@ repos:
     rev: v0.3.1
     hooks:
     -    id: ruff
-    additional_dependencies:
-#        - pydantic
-        - types-requests
-        - types-pytz
-        - types-setuptools
-        - types-urllib3
-#        - StrEnum
-        - types-pillow
-        - types-pyyaml
-        - types-pygments
-        - types-colorama
-        - types-psutil
-        - types-pywin32
-        - types-tabulate
-        - types-tqdm
-        - pytest
-        - loguru
-#        - python-dotenv
-#        - aiohttp

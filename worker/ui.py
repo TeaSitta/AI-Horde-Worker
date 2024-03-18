@@ -23,25 +23,25 @@ from worker.utils.gpuinfo import GPUInfo
 
 
 class DequeOutputCollector:
-    def __init__(self):
+    def __init__(self) -> None:
         self.deque = deque()
 
-    def write(self, s):
+    def write(self, s) -> None:
         if s != "\n":
             self.deque.append(s.strip())
 
-    def set_size(self, size):
+    def set_size(self, size) -> None:
         while len(self.deque) > size:
             self.deque.popleft()
 
-    def flush(self):
+    def flush(self) -> None:
         pass
 
-    def isatty(self):
+    def isatty(self) -> bool:
         # No, we are not a TTY
         return False
 
-    def close(self):
+    def close(self) -> None:
         pass
 
 
@@ -91,11 +91,9 @@ class TerminalUI:
         "Try again with a different prompt and/or seed.",
     ]
 
-    CLIENT_AGENT = (
-        f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
-    )
+    CLIENT_AGENT = f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
-    def __init__(self, bridge_data):
+    def __init__(self, bridge_data) -> None:
         self.should_stop = False
         self.bridge_data = bridge_data
 
@@ -122,9 +120,7 @@ class TerminalUI:
         self.worker_id = None
         threading.Thread(target=self.load_worker_id, daemon=True).start()
         self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 15)
-        self.last_horde_stats_refresh = time.time() - (
-            TerminalUI.REMOTE_HORDE_STATS_REFRESH - 20
-        )
+        self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 20)
         self.maintenance_mode = False
         self.gpu = GPUInfo()
         self.gpu.samples_per_second = 5
@@ -138,15 +134,13 @@ class TerminalUI:
         self._bck_stderr = sys.stderr
         self.reset_stats()
 
-    def initialise(self):
+    def initialise(self) -> None:
         # Suppress stdout / stderr
         sys.stderr = self.stderr
         sys.stdout = self.stdout
         # Remove all loguru sinks
         logger.remove()
-        handlers = [
-            sink for sink in config["handlers"] if isinstance(sink["sink"], str)
-        ]
+        handlers = [sink for sink in config["handlers"] if isinstance(sink["sink"], str)]
         # Re-initialise loguru
         newconfig = {"handlers": handlers}
         logger.configure(**newconfig)
@@ -156,10 +150,10 @@ class TerminalUI:
         self.initialise_main_window()
         self.resize()
 
-    def load_log(self):
+    def load_log(self) -> None:
         self.load_log_queue()
 
-    def parse_log_line(self, line):
+    def parse_log_line(self, line) -> str | None:
         if regex := TerminalUI.LOGURU_REGEX.match(line):
             if not self.show_debug and regex.group(2) == "DEBUG":
                 return None
@@ -170,7 +164,7 @@ class TerminalUI:
             return f"{regex.group(2)}::::{regex.group(1)}::::{regex.group(3)}::::{regex.group(4)}"
         return None
 
-    def load_log_queue(self):
+    def load_log_queue(self) -> None:
         lines = list(self.input.deque)
         self.input.deque.clear()
         for line in lines:
@@ -191,7 +185,7 @@ class TerminalUI:
 
         self.output.set_size(self.height)
 
-    def initialise_main_window(self):
+    def initialise_main_window(self) -> None:
         # getch doesn't block
         self.main.nodelay(True)
         # Hide cursor
@@ -206,13 +200,13 @@ class TerminalUI:
         curses.init_pair(6, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLACK)
 
-    def resize(self):
+    def resize(self) -> None:
         # Determine terminal size
         curses.update_lines_cols()
         # Determine terminal size
         self.height, self.width = self.main.getmaxyx()
 
-    def print(self, win, y, x, text, colour=None):
+    def print(self, win, y, x, text, colour=None) -> None:
         # Ensure we're going to fit
         height, width = win.getmaxyx()
         if y < 0 or x < 0 or x + len(text) > width or y > height:
@@ -226,19 +220,17 @@ class TerminalUI:
             else:
                 win.addstr(y, x, text, colour)
 
-    def draw_line(self, win, y, label):
+    def draw_line(self, win, y, label) -> None:
         height, width = win.getmaxyx()
         self.print(
             win,
             y,
             0,
-            TerminalUI.ART["left-join"]
-            + TerminalUI.ART["horizontal"] * (width - 2)
-            + TerminalUI.ART["right-join"],
+            TerminalUI.ART["left-join"] + TerminalUI.ART["horizontal"] * (width - 2) + TerminalUI.ART["right-join"],
         )
         self.print(win, y, 2, label)
 
-    def draw_box(self, y, x, width, height):  # noqa: ARG002
+    def draw_box(self, y, x, width, height) -> None:  # noqa: ARG002
         # An attempt to work cross platform, box() doesn't.
 
         # Draw the top border
@@ -246,9 +238,7 @@ class TerminalUI:
             self.main,
             0,
             0,
-            TerminalUI.ART["top_left"]
-            + TerminalUI.ART["horizontal"] * (width - 2)
-            + TerminalUI.ART["top_right"],
+            TerminalUI.ART["top_left"] + TerminalUI.ART["horizontal"] * (width - 2) + TerminalUI.ART["top_right"],
         )
 
         # Draw the side borders
@@ -280,13 +270,13 @@ class TerminalUI:
             result += f"{minutes}m"
         return result
 
-    def get_uptime(self):
+    def get_uptime(self) -> str:
         hours = int((time.time() - self.start_time) // 3600)
         minutes = int(((time.time() - self.start_time) % 3600) // 60)
         seconds = int((time.time() - self.start_time) % 60)
         return f"{hours}:{minutes:02}:{seconds:02}"
 
-    def reset_stats(self):
+    def reset_stats(self) -> None:
         bridge_stats.reset()
         self.start_time = time.time()
         self.jobs_done = 0
@@ -315,15 +305,11 @@ class TerminalUI:
         self.warning_count = 0
 
     def print_switch(self, y, x, label, switch):
-        colour = (
-            curses.color_pair(TerminalUI.COLOUR_CYAN)
-            if switch
-            else curses.color_pair(TerminalUI.COLOUR_WHITE)
-        )
+        colour = curses.color_pair(TerminalUI.COLOUR_CYAN) if switch else curses.color_pair(TerminalUI.COLOUR_WHITE)
         self.print(self.main, y, x, label, colour)
         return x + len(label) + 2
 
-    def get_free_ram(self):
+    def get_free_ram(self) -> str:
         mem = psutil.virtual_memory().available
         percent = 100 - trunc(psutil.virtual_memory().percent)
         mem /= 1048576
@@ -334,7 +320,7 @@ class TerminalUI:
         mem = trunc(mem)
         return f"{mem} {unit} ({percent}%)"
 
-    def get_cpu_usage(self):
+    def get_cpu_usage(self) -> str:
         cpu = psutil.cpu_percent()
         self.cpu_average.append(cpu)
         self.cpu_average = self.cpu_average[-(self.gpu.samples_per_second * 60 * 5) :]
@@ -342,7 +328,7 @@ class TerminalUI:
         cpu = f"{trunc(cpu)}%".ljust(3)
         return f"{cpu} ({avg_cpu}%)"
 
-    def print_status(self):
+    def print_status(self) -> None:
         # This is the design template: (80 columns)
         # ╔═Horde Worker Name═════════════════════════════════════════(25.10.10)══000000═╗
         # ║   Uptime: 0:14:35      Jobs Completed: 6        Avg Kudos Per Job: 103       ║
@@ -378,7 +364,7 @@ class TerminalUI:
         row_horde = row_total + 3
         self.status_height = row_horde + 6
 
-        def label(y, x, label):
+        def label(y, x, label) -> None:
             self.print(self.main, y, x - len(label) - 1, label)
 
         self.draw_box(0, 0, self.width, self.status_height)
@@ -403,7 +389,8 @@ class TerminalUI:
         label(row_local + 4, col_right, "Job Fetch:")
 
         tmp_row_gpu = row_gpu
-        for gpu_i in range(num_gpus):
+        # Was forced to 1 TODO: set via argument/config/UI control
+        for gpu_i in range(num_gpus):  # noqa B007
             label(tmp_row_gpu + 1, col_left, "Load:")
             label(tmp_row_gpu + 2, col_left, "Temp:")
             label(tmp_row_gpu + 3, col_left, "Power:")
@@ -448,17 +435,18 @@ class TerminalUI:
         if re.match(r"\d{3,4} MB", ram):
             ram_colour = curses.color_pair(TerminalUI.COLOUR_MAGENTA)
         elif re.match(r"(\d{1,2}) MB", ram):
-            if (
-                self.audio_alerts
-                and time.time() - self.last_audio_alert > TerminalUI.ALERT_INTERVAL
-            ):
+            if self.audio_alerts and time.time() - self.last_audio_alert > TerminalUI.ALERT_INTERVAL:
                 self.last_audio_alert = time.time()
                 curses.beep()
             ram_colour = curses.color_pair(TerminalUI.COLOUR_RED)
 
         self.print(self.main, row_local + 4, col_left, f"{self.get_cpu_usage()}")
         self.print(
-            self.main, row_local + 4, col_mid, f"{self.get_free_ram()}", ram_colour
+            self.main,
+            row_local + 4,
+            col_mid,
+            f"{self.get_free_ram()}",
+            ram_colour,
         )
 
         gpus = []
@@ -471,11 +459,7 @@ class TerminalUI:
                 if re.match(r"\d\d\d MB", gpu["vram_free"]):
                     vram_colour = curses.color_pair(TerminalUI.COLOUR_MAGENTA)
                 elif re.match(r"(\d{1,2}) MB", gpu["vram_free"]):
-                    if (
-                        self.audio_alerts
-                        and time.time() - self.last_audio_alert
-                        > TerminalUI.ALERT_INTERVAL
-                    ):
+                    if self.audio_alerts and time.time() - self.last_audio_alert > TerminalUI.ALERT_INTERVAL:
                         self.last_audio_alert = time.time()
                         curses.beep()
                     vram_colour = curses.color_pair(TerminalUI.COLOUR_RED)
@@ -510,7 +494,11 @@ class TerminalUI:
                     f"{gpu['power']:4} ({gpu['avg_power']})",
                 )
                 self.print(
-                    self.main, row_gpu + 3, col_mid, f"{gpu['vram_free']}", vram_colour
+                    self.main,
+                    row_gpu + 3,
+                    col_mid,
+                    f"{gpu['vram_free']}",
+                    vram_colour,
                 )
                 self.print(self.main, row_gpu + 3, col_right, f"{gpu['pci_width']}")
 
@@ -521,7 +509,10 @@ class TerminalUI:
         self.print(self.main, row_total + 1, col_right, f"{self.total_jobs}")
 
         self.print(
-            self.main, row_total + 2, col_left, f"{self.bridge_data.max_context_length}"
+            self.main,
+            row_total + 2,
+            col_left,
+            f"{self.bridge_data.max_context_length}",
         )
         self.print(
             self.main,
@@ -582,7 +573,7 @@ class TerminalUI:
         # Truncate the output so it fits
         return output[-maxrows:]
 
-    def print_log(self):
+    def print_log(self) -> None:
         if not self.pause_log:
             self.load_log()
         output = list(self.output.deque)
@@ -621,7 +612,11 @@ class TerminalUI:
             last_timestamp = nextwhen
             length = len(last_timestamp) + 2
             self.print(
-                self.main, y, 1, f"{when}", curses.color_pair(TerminalUI.COLOUR_GREEN)
+                self.main,
+                y,
+                1,
+                f"{when}",
+                curses.color_pair(TerminalUI.COLOUR_GREEN),
             )
 
             # Source file name
@@ -646,7 +641,7 @@ class TerminalUI:
                     break
             inputrow += 1
 
-    def load_worker_id(self):
+    def load_worker_id(self) -> None:
         try:
             while not self.worker_id:
                 if not self.worker_name:
@@ -667,11 +662,7 @@ class TerminalUI:
                 if r.ok:
                     worker_json = r.json()
                     self.worker_id = next(
-                        (
-                            item["id"]
-                            for item in worker_json
-                            if item["name"] == self.worker_name
-                        ),
+                        (item["id"] for item in worker_json if item["name"] == self.worker_name),
                         None,
                     )
                     if self.worker_id:
@@ -685,7 +676,7 @@ class TerminalUI:
         except Exception as ex:
             logger.warning(str(ex))
 
-    def set_maintenance_mode(self, enabled):
+    def set_maintenance_mode(self, enabled) -> None:
         if not self.bridge_data.api_key or not self.worker_id:
             return
         header = {
@@ -702,7 +693,7 @@ class TerminalUI:
         if not res.ok:
             logger.error(f"Maintenance mode failed: {res.text}")
 
-    def get_remote_worker_info(self):
+    def get_remote_worker_info(self) -> None:
         try:
             if not self.worker_id:
                 return
@@ -723,7 +714,7 @@ class TerminalUI:
                 return
             if not r.ok:
                 logger.warning(
-                    f"Calling Worker information API failed ({r.status_code})"
+                    f"Calling Worker information API failed ({r.status_code})",
                 )
                 return
             data = r.json()
@@ -760,7 +751,7 @@ class TerminalUI:
                 return
             if not r_models.ok:
                 logger.warning(
-                    f"Calling Models information API failed ({r_models.status_code})"
+                    f"Calling Models information API failed ({r_models.status_code})",
                 )
                 return
             models_json = r_models.json()
@@ -770,12 +761,14 @@ class TerminalUI:
         except Exception as ex:
             logger.warning(str(ex))
 
-    def get_remote_horde_stats(self):
+    def get_remote_horde_stats(self) -> None:
         try:
             url = f"{self.url}/api/v2/status/performance"
             try:
                 r = requests.get(
-                    url, headers={"client-agent": TerminalUI.CLIENT_AGENT}, timeout=10
+                    url,
+                    headers={"client-agent": TerminalUI.CLIENT_AGENT},
+                    timeout=10,
                 )
             except requests.exceptions.Timeout:
                 pass
@@ -795,7 +788,7 @@ class TerminalUI:
         except Exception as ex:
             logger.warning(str(ex))
 
-    def update_stats(self):
+    def update_stats(self) -> None:
         # Recent job pop times
         if "pop_time_avg_5_mins" in bridge_stats.stats:
             self.pop_time = bridge_stats.stats["pop_time_avg_5_mins"]
@@ -806,23 +799,18 @@ class TerminalUI:
 
         if time.time() - self.last_stats_refresh > TerminalUI.REMOTE_STATS_REFRESH:
             self.last_stats_refresh = time.time()
-            if (
-                self._worker_info_thread and not self._worker_info_thread.is_alive()
-            ) or not self._worker_info_thread:
+            if (self._worker_info_thread and not self._worker_info_thread.is_alive()) or not self._worker_info_thread:
                 self._worker_info_thread = threading.Thread(
-                    target=self.get_remote_worker_info, daemon=True
+                    target=self.get_remote_worker_info,
+                    daemon=True,
                 ).start()
 
-        if (
-            time.time() - self.last_horde_stats_refresh
-            > TerminalUI.REMOTE_HORDE_STATS_REFRESH
-        ):
+        if time.time() - self.last_horde_stats_refresh > TerminalUI.REMOTE_HORDE_STATS_REFRESH:
             self.last_horde_stats_refresh = time.time()
-            if (
-                self._horde_stats_thread and not self._horde_stats_thread.is_alive()
-            ) or not self._horde_stats_thread:
+            if (self._horde_stats_thread and not self._horde_stats_thread.is_alive()) or not self._horde_stats_thread:
                 self._horde_stats_thread = threading.Thread(
-                    target=self.get_remote_horde_stats, daemon=True
+                    target=self.get_remote_horde_stats,
+                    daemon=True,
                 ).start()
 
     def get_commit_hash(self):
@@ -830,7 +818,7 @@ class TerminalUI:
         if not os.path.exists(head_file):
             return ""
         try:
-            with open(head_file, "r") as f:
+            with open(head_file) as f:
                 head_contents = f.read().strip()
 
             if not head_contents.startswith("ref:"):
@@ -838,13 +826,13 @@ class TerminalUI:
 
             ref_path = os.path.join(".git", *head_contents[5:].split("/"))
 
-            with open(ref_path, "r") as f:
+            with open(ref_path) as f:
                 return f.read().strip()
 
         except Exception:
             return ""
 
-    def get_input(self):
+    def get_input(self) -> bool | None:
         x = self.main.getch()
         self.last_key = x
         if x == curses.KEY_RESIZE:
@@ -867,7 +855,7 @@ class TerminalUI:
 
         return None
 
-    def poll(self):
+    def poll(self) -> bool | None:
         if self.get_input():
 
             return True
@@ -878,7 +866,7 @@ class TerminalUI:
         self.main.refresh()
         return None
 
-    def main_loop(self, stdscr):
+    def main_loop(self, stdscr) -> None:
         if not stdscr:
             self.stop()
             logger.error("Failed to initialise curses")
@@ -902,11 +890,11 @@ class TerminalUI:
             except Exception as exc:
                 logger.error(str(exc))
 
-    def run(self):
+    def run(self) -> None:
         self.should_stop = False
         curses.wrapper(self.main_loop)
 
-    def stop(self):
+    def stop(self) -> None:
         self.should_stop = True
         # Restore the terminal
         sys.stdout = self._bck_stdout

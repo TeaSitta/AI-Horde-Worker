@@ -1,4 +1,5 @@
 """The configuration of the bridge"""
+
 import os
 import random
 import threading
@@ -16,7 +17,7 @@ class BridgeData:
 
     mutex = threading.Lock()
 
-    def __init__(self):
+    def __init__(self) -> None:
         random.seed()
         # I have to pass the args from the extended class
         self.args = args
@@ -47,10 +48,10 @@ class BridgeData:
         self.softprompts = {}
         self.current_softprompt = None
 
-    def load_config(self):
+    def load_config(self) -> bool | None:
         # YAML config
         if os.path.exists(BRIDGE_CONFIG_FILE):
-            with open(BRIDGE_CONFIG_FILE, "rt", encoding="utf-8", errors="ignore") as configfile:
+            with open(BRIDGE_CONFIG_FILE, encoding="utf-8", errors="ignore") as configfile:
                 config = yaml.safe_load(configfile)
                 # Map the config's values directly into this instance's properties
                 for key, value in config.items():
@@ -59,7 +60,7 @@ class BridgeData:
         return None
 
     @logger.catch(reraise=True)
-    def reload_data(self):
+    def reload_data(self) -> None:
         """Reloads configuration data"""
         previous_api_key = self.api_key
         previous_url = self.horde_url
@@ -102,7 +103,7 @@ class BridgeData:
             )
 
     @logger.catch(reraise=True)
-    def validate_kai(self):
+    def validate_kai(self) -> None:
         logger.debug("Retrieving settings from KoboldAI Client...")
         try:
             req = requests.get(self.kai_url + "/api/latest/model")

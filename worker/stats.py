@@ -1,4 +1,5 @@
 """Bridge Stats Tracker"""
+
 # import json
 import threading
 import time
@@ -10,19 +11,19 @@ class BridgeStats:
 
     stats = {}  # Deliberately on class level
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.kudos_record = deque()
         self.pop_record = deque()
         # We are called from diverse thread contexts
         self._mutex = threading.Lock()
 
-    def reset(self):
+    def reset(self) -> None:
         with self._mutex:
             self.kudos_record = deque()
             self.pop_record = deque()
             BridgeStats.stats = {}
 
-    def update_pop_stats(self, node, pop_time):
+    def update_pop_stats(self, node, pop_time) -> None:
         with self._mutex:
             self.pop_record.append((node, pop_time, time.time()))
 
@@ -44,7 +45,7 @@ class BridgeStats:
                 self.stats["pop_time_avg_5_mins"] = round(average_5_mins, 2)
                 # self.stats["pop_time_avg_1_hour"] = round(average_1_hour, 2)
 
-    def update_inference_stats(self, model_name, kudos):
+    def update_inference_stats(self, model_name, kudos) -> None:
         """Updates the stats for a model inference"""
         with self._mutex:
             if "inference" not in self.stats:
