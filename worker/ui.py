@@ -153,7 +153,7 @@ class TerminalUI:
     def load_log(self) -> None:
         self.load_log_queue()
 
-    def parse_log_line(self, line) -> str | None:
+    def parse_log_line(self, line):
         if regex := TerminalUI.LOGURU_REGEX.match(line):
             if not self.show_debug and regex.group(2) == "DEBUG":
                 return None
@@ -286,7 +286,7 @@ class TerminalUI:
         self.total_kudos = "Pending"
         self.total_worker_kudos = "Pending"
         self.total_uptime = "Pending"
-        self.avg_kudos_per_job = "unknown"
+        self.avg_kudos_per_job = "Pending"
         self.threads = "Pending"
         self.context = ""
         self.total_failed_jobs = "Pending"
@@ -298,7 +298,7 @@ class TerminalUI:
         self.queued_mps = "Pending"
         self.last_minute_mps = "Pending"
         self.queue_time = "Pending"
-        self.model_jobs = "Pending"
+        self.model_queue = "Pending"
         self.model_eta = "Pending"
         self.model_threads = "Pending"
         self.error_count = 0
@@ -344,7 +344,7 @@ class TerminalUI:
         # ║  Context: 8192            Total Uptime: 34d 19h 14m    Jobs Failed: 972      ║
         # ╟───Horde──────────────────────────────────────────────────────────────────────╢
         # ║  Model Queue: 43           Jobs Queued: 99999           Queue Time: 99m      ║
-        # ║    Model ETA: 120        Total Workers: 1000         Total Threads: 1000     ║
+        # ║    Model ETA: 120s       Total Workers: 1000         Total Threads: 1000     ║
         # ║ Model Threads: 8                                                             ║
         # ║     (m)aintenance  (s)ource  (d)ebug  (p)ause log  (a)lerts  (r)eset  (q)uit ║
         # ╙──────────────────────────────────────────────────────────────────────────────╜
@@ -522,7 +522,7 @@ class TerminalUI:
         )
         self.print(self.main, row_total + 2, col_right, f"{self.total_failed_jobs}")
 
-        self.print(self.main, row_horde + 1, col_left + 5, f"{self.model_jobs}")
+        self.print(self.main, row_horde + 1, col_left + 5, f"{self.model_queue} jobs")
         self.print(self.main, row_horde + 1, col_mid, f"{self.queued_requests}")
         self.print(
             self.main,
@@ -531,7 +531,7 @@ class TerminalUI:
             f"{self.seconds_to_timestring(self.queue_time)}",
         )
 
-        self.print(self.main, row_horde + 2, col_left + 5, f"{self.model_eta}")
+        self.print(self.main, row_horde + 2, col_left + 5, f"{self.model_eta}s")
         self.print(self.main, row_horde + 2, col_mid, f"{self.worker_count}")
         self.print(self.main, row_horde + 2, col_right, f"{self.thread_count}")
 
@@ -755,7 +755,7 @@ class TerminalUI:
                 )
                 return
             models_json = r_models.json()
-            self.model_jobs = models_json[0].get("jobs", 0)
+            self.model_queue = int(models_json[0].get("jobs", 0))
             self.model_eta = models_json[0].get("eta", 0)
             self.model_threads = models_json[0].get("count", 0)
         except Exception as ex:
@@ -832,7 +832,7 @@ class TerminalUI:
         except Exception:
             return ""
 
-    def get_input(self) -> bool | None:
+    def get_input(self):
         x = self.main.getch()
         self.last_key = x
         if x == curses.KEY_RESIZE:
@@ -852,10 +852,9 @@ class TerminalUI:
             self.set_maintenance_mode(self.maintenance_mode)
         elif x == ord("p") or x == ord("P"):
             self.pause_log = not self.pause_log
-
         return None
 
-    def poll(self) -> bool | None:
+    def poll(self) -> bool:
         if self.get_input():
 
             return True
