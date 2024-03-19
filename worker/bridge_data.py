@@ -23,7 +23,8 @@ class BridgeData:
         self.args = args
 
         # If there is a YAML config file, load it
-        self.load_config()
+        if not self.load_config():
+            logger.warning("bridgeData.yaml not found, loading defaults or arguments.")
 
         self.horde_url = os.environ.get("HORDE_URL", "https://aihorde.net")
         # Give a cool name to your instance
@@ -33,11 +34,9 @@ class BridgeData:
         self.max_threads = int(os.environ.get("HORDE_MAX_THREADS", 1))
         self.queue_size = int(os.environ.get("HORDE_QUEUE_SIZE", 0))
 
-        # remove these for the refactor?
         self.stats_output_frequency = int(os.environ.get("STATS_OUTPUT_FREQUENCY", 30))
         self.disable_terminal_ui = os.environ.get("DISABLE_TERMINAL_UI", "false") == "true"
         self.initialized = False
-
         self.suppress_speed_warnings = False
         self.kai_available = False
         self.model = None
@@ -48,7 +47,7 @@ class BridgeData:
         self.softprompts = {}
         self.current_softprompt = None
 
-    def load_config(self) -> bool | None:
+    def load_config(self) -> bool:
         # YAML config
         if os.path.exists(BRIDGE_CONFIG_FILE):
             with open(BRIDGE_CONFIG_FILE, encoding="utf-8", errors="ignore") as configfile:
@@ -57,7 +56,7 @@ class BridgeData:
                 for key, value in config.items():
                     setattr(self, key, value)
             return True  # loaded
-        return None
+        return False
 
     @logger.catch(reraise=True)
     def reload_data(self) -> None:

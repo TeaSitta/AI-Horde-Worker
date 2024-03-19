@@ -34,12 +34,9 @@ class ScribeWorker:
         self.startup_terminal_ui()
 
     def startup_terminal_ui(self) -> None:
-        # Setup UI if requested
+        # Do not launch in notebook
         in_notebook = hasattr(__builtins__, "__IPYTHON__")
         if in_notebook:
-            return
-
-        if self.bridge_data.disable_terminal_ui:
             return
 
         from worker.ui import TerminalUI

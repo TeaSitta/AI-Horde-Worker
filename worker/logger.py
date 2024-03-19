@@ -77,6 +77,7 @@ def is_trace_log(record) -> bool:
 
 
 def test_logger() -> None:
+    """Series of test logger calls before sys.exit()"""
     logger.generation(
         "This is a generation message\nIt is typically multiline\nThee Lines".encode("unicode_escape").decode("utf-8"),
     )
