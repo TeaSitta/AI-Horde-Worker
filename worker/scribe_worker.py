@@ -15,7 +15,6 @@ class ScribeWorker:
         self.running_jobs = []
         self.waiting_jobs = []
         self.run_count = 0
-        self.pilot_job_was_run = False
         self.last_config_reload = 0
         self.is_daemon = False
         self.should_stop = False
@@ -28,7 +27,8 @@ class ScribeWorker:
         self.ui = None
         self.ui_class = None
         self.last_stats_time = time.time()
-        logger.stats("Starting new stats session")
+        # purge?
+        # logger.stats("Starting new stats session")
         self.PopperClass = ScribePopper
         self.JobClass = ScribeHordeJob
         self.startup_terminal_ui()
@@ -77,8 +77,7 @@ class ScribeWorker:
                         self.should_restart = True
                         break
                     try:
-                        # if self.ui and not self.ui.is_alive():  # Does not seem to be used
-                        if not self.ui.is_alive():
+                        if self.ui and not self.ui.is_alive():
                             # UI Exited, we should probably exit
                             self.should_stop = True
                             raise KeyboardInterrupt
@@ -101,7 +100,7 @@ class ScribeWorker:
         if time.time() - self.last_config_reload > 60:
             self.reload_bridge_data()
         if not self.can_process_jobs():
-            time.sleep(5)
+            time.sleep(3)
             return
         # Add job to queue if we have space
         if len(self.waiting_jobs) < self.bridge_data.queue_size:

@@ -96,8 +96,8 @@ class TerminalUI:
     def __init__(self, bridge_data) -> None:
         self.should_stop = False
         self.bridge_data = bridge_data
-
-        self.scribe_worker = True
+        # refactor purge
+        # self.scribe_worker = True
 
         self.worker_name = self.bridge_data.worker_name
         if hasattr(self.bridge_data, "horde_url"):
@@ -332,9 +332,9 @@ class TerminalUI:
         # This is the design template: (80 columns)
         # ╔═Horde Worker Name═════════════════════════════════════════(25.10.10)══000000═╗
         # ║   Uptime: 0:14:35      Jobs Completed: 6        Avg Kudos Per Job: 103       ║
-        # ║    Model: Llama2...    Kudos Per Hour: 5283         Jobs Per Hour: 524966    ║
-        # ║                              Warnings: 9999                Errors: 100       ║
-        # ║ CPU Load: 99% (99%)          Free RAM: 2 GB (99%)       Job Fetch: 2.32s     ║
+        # ║ pop time: 0.58s        Kudos Per Hour: 5283         Jobs Per Hour: 524966    ║
+        # ║    Model: Llama2...          Warnings: 9999                Errors: 10        ║
+        # ║ CPU Load: 99% (99%)          Free RAM: 2 GB (10%)       Job Fetch: 2.32s     ║
         # ╟─NVIDIA GeForce RTX 3090──────────────────────────────────────────────────────╢
         # ║    Load: 100% (90%)        VRAM Total: 24576MiB         Fan Speed: 100%      ║
         # ║    Temp: 100C (58C)         VRAM Used: 16334MiB           PCI Gen: 5         ║
