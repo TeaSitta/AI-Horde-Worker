@@ -15,7 +15,6 @@ class ScribeWorker:
         self.running_jobs = []
         self.waiting_jobs = []
         self.run_count = 0
-        self.pilot_job_was_run = False
         self.last_config_reload = 0
         self.is_daemon = False
         self.should_stop = False
@@ -28,15 +27,15 @@ class ScribeWorker:
         self.ui = None
         self.ui_class = None
         self.last_stats_time = time.time()
-        logger.stats("Starting new stats session")
         self.PopperClass = ScribePopper
         self.JobClass = ScribeHordeJob
         self.startup_terminal_ui()
 
     def startup_terminal_ui(self) -> None:
         # Do not launch in notebook
-        in_notebook = hasattr(__builtins__, "__IPYTHON__")
-        if in_notebook:
+        self.in_notebook = hasattr(__builtins__, "__IPYTHON__")
+
+        if self.in_notebook:
             return
 
         from worker.ui import TerminalUI
@@ -77,11 +76,6 @@ class ScribeWorker:
                         self.should_restart = True
                         break
                     try:
-                        # if self.ui and not self.ui.is_alive():  # Does not seem to be used
-                        if not self.ui.is_alive():
-                            # UI Exited, we should probably exit
-                            self.should_stop = True
-                            raise KeyboardInterrupt
                         self.process_jobs()
                     except KeyboardInterrupt:  # This is what exits on old ver
                         self.should_stop = True
@@ -101,14 +95,17 @@ class ScribeWorker:
         if time.time() - self.last_config_reload > 60:
             self.reload_bridge_data()
         if not self.can_process_jobs():
-            time.sleep(5)
+            time.sleep(3)
             return
+
         # Add job to queue if we have space
         if len(self.waiting_jobs) < self.bridge_data.queue_size:
             self.add_job_to_queue()
 
         while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
-            pass
+            if not self.in_notebook and not self.ui.is_alive():
+                self.should_stop = True
+                return
 
         # Check if any jobs are done
         for job_thread, start_time, job in self.running_jobs:
@@ -157,14 +154,9 @@ class ScribeWorker:
                 job = jobs[0]
             if self.should_stop:
                 return False
-            # If UI has stopped we should break
-            if not self.ui.is_alive():
-                self.should_stop = True
-                return False
         elif len(self.waiting_jobs) > 0:
             job = self.waiting_jobs.pop(0)
         else:
-            #  This causes a break on the main loop outside
             return False
         # Run the job
         if job:

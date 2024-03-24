@@ -203,7 +203,6 @@ class HordeJob:
 
 class ScribeHordeJob(HordeJob):
     def __init__(self, bd, pop) -> None:
-        # mm will always be None for the scribe
         super().__init__(bd, pop)
         self.current_model = None
         self.seed = None
