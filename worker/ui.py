@@ -832,7 +832,7 @@ class TerminalUI:
         except Exception:
             return ""
 
-    def get_input(self):
+    def get_input(self) -> bool:
         x = self.main.getch()
         self.last_key = x
         if x == curses.KEY_RESIZE:
@@ -846,24 +846,25 @@ class TerminalUI:
         elif x == ord("r") or x == ord("R"):
             self.reset_stats()
         elif x == ord("q") or x == ord("Q"):
-            return True
+            self.should_stop = True
+            return False
         elif x == ord("m") or x == ord("M"):
             self.maintenance_mode = not self.maintenance_mode
             self.set_maintenance_mode(self.maintenance_mode)
         elif x == ord("p") or x == ord("P"):
             self.pause_log = not self.pause_log
-        return None
+        return True
 
     def poll(self) -> bool:
-        if self.get_input():
+        if not self.get_input():
 
-            return True
+            return False
         self.main.erase()
         self.update_stats()
         self.print_status()
         self.print_log()
         self.main.refresh()
-        return None
+        return True
 
     def main_loop(self, stdscr) -> None:
         if not stdscr:
@@ -874,13 +875,14 @@ class TerminalUI:
         self.main = stdscr
         while True:
             if self.should_stop:
+                self.stop()
                 return
             try:
                 self.initialise()
                 while True:
                     if self.should_stop:
                         return
-                    if self.poll():
+                    if not self.poll():
                         return
                     time.sleep(1 / self.gpu.samples_per_second)
             except KeyboardInterrupt:

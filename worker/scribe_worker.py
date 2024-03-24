@@ -29,6 +29,7 @@ class ScribeWorker:
         self.last_stats_time = time.time()
         # purge?
         # logger.stats("Starting new stats session")
+        self.shutdown_event = threading.Event()
         self.PopperClass = ScribePopper
         self.JobClass = ScribeHordeJob
         self.startup_terminal_ui()
@@ -36,6 +37,7 @@ class ScribeWorker:
     def startup_terminal_ui(self) -> None:
         # Do not launch in notebook
         in_notebook = hasattr(__builtins__, "__IPYTHON__")
+        # in_notebook = True
         if in_notebook:
             return
 
@@ -156,14 +158,9 @@ class ScribeWorker:
                 job = jobs[0]
             if self.should_stop:
                 return False
-            # If UI has stopped we should break
-            if not self.ui.is_alive():
-                self.should_stop = True
-                return False
         elif len(self.waiting_jobs) > 0:
             job = self.waiting_jobs.pop(0)
         else:
-            #  This causes a break on the main loop outside
             return False
         # Run the job
         if job:
