@@ -35,9 +35,6 @@ class ScribeWorker:
         # Do not launch in notebook
         self.in_notebook = hasattr(__builtins__, "__IPYTHON__")
 
-        # Testing
-        self.in_notebook = True
-
         if self.in_notebook:
             return
 
