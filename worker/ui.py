@@ -860,7 +860,6 @@ class TerminalUI:
 
     def poll(self) -> bool:
         if not self.get_input():
-
             return False
         self.main.erase()
         self.update_stats()
