@@ -833,6 +833,8 @@ class TerminalUI:
             return ""
 
     def get_input(self) -> bool:
+        """Get keyboard input from the UI
+        Return false on quit, else true"""
         x = self.main.getch()
         self.last_key = x
         if x == curses.KEY_RESIZE:
@@ -847,6 +849,7 @@ class TerminalUI:
             self.reset_stats()
         elif x == ord("q") or x == ord("Q"):
             self.should_stop = True
+
             return False
         elif x == ord("m") or x == ord("M"):
             self.maintenance_mode = not self.maintenance_mode
@@ -874,9 +877,10 @@ class TerminalUI:
 
         self.main = stdscr
         while True:
-            if self.should_stop:
-                self.stop()
-                return
+            # purge ?
+            # if self.should_stop:
+            #     self.stop()
+            #     return
             try:
                 self.initialise()
                 while True:
@@ -894,6 +898,7 @@ class TerminalUI:
     def run(self) -> None:
         self.should_stop = False
         curses.wrapper(self.main_loop)
+        self.stop()
 
     def stop(self) -> None:
         self.should_stop = True

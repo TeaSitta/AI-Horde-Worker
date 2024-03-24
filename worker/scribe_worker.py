@@ -27,18 +27,18 @@ class ScribeWorker:
         self.ui = None
         self.ui_class = None
         self.last_stats_time = time.time()
-        # purge?
-        # logger.stats("Starting new stats session")
-        self.shutdown_event = threading.Event()
         self.PopperClass = ScribePopper
         self.JobClass = ScribeHordeJob
         self.startup_terminal_ui()
 
     def startup_terminal_ui(self) -> None:
         # Do not launch in notebook
-        in_notebook = hasattr(__builtins__, "__IPYTHON__")
-        # in_notebook = True
-        if in_notebook:
+        self.in_notebook = hasattr(__builtins__, "__IPYTHON__")
+
+        # Testing
+        self.in_notebook = True
+
+        if self.in_notebook:
             return
 
         from worker.ui import TerminalUI
@@ -79,10 +79,6 @@ class ScribeWorker:
                         self.should_restart = True
                         break
                     try:
-                        if self.ui and not self.ui.is_alive():
-                            # UI Exited, we should probably exit
-                            self.should_stop = True
-                            raise KeyboardInterrupt
                         self.process_jobs()
                     except KeyboardInterrupt:  # This is what exits on old ver
                         self.should_stop = True
@@ -104,12 +100,15 @@ class ScribeWorker:
         if not self.can_process_jobs():
             time.sleep(3)
             return
+
         # Add job to queue if we have space
         if len(self.waiting_jobs) < self.bridge_data.queue_size:
             self.add_job_to_queue()
 
         while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
-            pass
+            if not self.in_notebook and not self.ui.is_alive():
+                self.should_stop = True
+                return
 
         # Check if any jobs are done
         for job_thread, start_time, job in self.running_jobs:
