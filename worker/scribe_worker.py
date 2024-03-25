@@ -37,7 +37,8 @@ class ScribeWorker:
 
         if self.in_notebook:
             return
-
+        if self.bridge_data.disable_terminal_ui:
+            return
         from worker.ui import TerminalUI
 
         self.ui_class = TerminalUI(self.bridge_data)
