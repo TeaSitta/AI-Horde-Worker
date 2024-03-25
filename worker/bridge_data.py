@@ -33,7 +33,6 @@ class BridgeData:
         self.api_key = os.environ.get("HORDE_API_KEY", "0000000000")
         self.max_threads = int(os.environ.get("HORDE_MAX_THREADS", 1))
         self.queue_size = int(os.environ.get("HORDE_QUEUE_SIZE", 0))
-
         self.stats_output_frequency = int(os.environ.get("STATS_OUTPUT_FREQUENCY", 30))
         self.disable_terminal_ui = os.environ.get("DISABLE_TERMINAL_UI", "false") == "true"
         self.initialized = False

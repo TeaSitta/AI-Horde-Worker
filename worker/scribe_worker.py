@@ -35,10 +35,9 @@ class ScribeWorker:
         # Do not launch in notebook
         self.in_notebook = hasattr(__builtins__, "__IPYTHON__")
 
-        if self.in_notebook:
+        if self.in_notebook or self.bridge_data.disable_terminal_ui:
             return
-        if self.bridge_data.disable_terminal_ui:
-            return
+
         from worker.ui import TerminalUI
 
         self.ui_class = TerminalUI(self.bridge_data)
