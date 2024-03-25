@@ -29,5 +29,8 @@ queue_size: 0
 # Please note, that if you *are* getting these messages, you are serving jobs substantially slower than is ideal.
 suppress_speed_warnings: false
 
+# Disable the terminal GUI, which displays information about the worker and the horde.
+disable_terminal_ui: false
+
 # The horde url
 horde_url: "https://aihorde.net"
