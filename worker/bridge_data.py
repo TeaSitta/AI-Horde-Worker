@@ -74,6 +74,8 @@ class BridgeData:
             self.max_threads = self.args.max_threads
         if self.args.queue_size:
             self.queue_size = self.args.queue_size
+        if self.args.disable_ui:
+            self.disable_terminal_ui = self.args.disable_ui
         if not self.initialized or previous_api_key != self.api_key:
             try:
                 user_req = requests.get(
@@ -124,4 +126,9 @@ class BridgeData:
             logger.error(f"Server {self.kai_url} is not reachable. Are you sure it's running?")
             self.kai_available = False
             return
+        except requests.exceptions.RequestException as ex:
+            logger.error(f"Error reaching {self.kai_url} - {ex}")
+            self.kai_available = False
+            return
+
         self.kai_available = True

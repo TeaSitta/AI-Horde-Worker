@@ -70,6 +70,11 @@ arg_parser.add_argument(
     required=False,
     help="The URL at which the KoboldAI Client API can be found.",
 )
-
+arg_parser.add_argument(
+    "--disable_ui",
+    action="store_true",
+    required=False,
+    help=("Disable the curses terminal UI and only display log lines"),
+)
 
 args = arg_parser.parse_args()
