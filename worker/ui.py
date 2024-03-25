@@ -96,9 +96,6 @@ class TerminalUI:
     def __init__(self, bridge_data) -> None:
         self.should_stop = False
         self.bridge_data = bridge_data
-        # refactor purge
-        # self.scribe_worker = True
-
         self.worker_name = self.bridge_data.worker_name
         if hasattr(self.bridge_data, "horde_url"):
             self.url = self.bridge_data.horde_url
@@ -876,10 +873,6 @@ class TerminalUI:
 
         self.main = stdscr
         while True:
-            # purge ?
-            # if self.should_stop:
-            #     self.stop()
-            #     return
             try:
                 self.initialise()
                 while True:
