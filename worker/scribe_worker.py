@@ -29,6 +29,7 @@ class ScribeWorker:
         self.last_stats_time = time.time()
         self.PopperClass = ScribePopper
         self.JobClass = ScribeHordeJob
+        self.shutdown_event = threading.Event()
         self.startup_terminal_ui()
 
     def startup_terminal_ui(self) -> None:
@@ -103,17 +104,16 @@ class ScribeWorker:
             self.add_job_to_queue()
 
         while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
-            if not self.in_notebook and not self.ui.is_alive():
-                self.should_stop = True
-                return
+            # if not self.in_notebook and not self.ui.is_alive():
+            #     self.should_stop = True
 
-        # Check if any jobs are done
-        for job_thread, start_time, job in self.running_jobs:
-            self.check_running_job_status(job_thread, start_time, job)
-            if self.should_restart or self.should_stop:
-                break
-        # Give the CPU a break
-        time.sleep(0.02)
+            # Check if any jobs are done
+            for job_thread, start_time, job in self.running_jobs:
+                self.check_running_job_status(job_thread, start_time, job)
+                if self.should_restart or self.should_stop:
+                    break
+            # Give the CPU a break
+            time.sleep(0.02)
 
     def can_process_jobs(self):
         """This function returns true when this worker can start polling for jobs from the AI Horde

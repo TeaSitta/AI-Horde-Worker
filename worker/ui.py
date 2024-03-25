@@ -94,6 +94,7 @@ class TerminalUI:
     CLIENT_AGENT = f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
     def __init__(self, bridge_data) -> None:
+        self.shutdown_event = threading.Event()
         self.should_stop = False
         self.bridge_data = bridge_data
         self.worker_name = self.bridge_data.worker_name
@@ -669,6 +670,8 @@ class TerminalUI:
                         logger.warning("Waiting for Worker ID from the AI Horde")
                 else:
                     logger.warning(f"Failed to get worker ID {r.status_code}")
+                if self.shutdown_event.is_set():
+                    break
                 time.sleep(5)
         except Exception as ex:
             logger.warning(str(ex))
@@ -845,9 +848,9 @@ class TerminalUI:
         elif x == ord("r") or x == ord("R"):
             self.reset_stats()
         elif x == ord("q") or x == ord("Q"):
-            self.should_stop = True
+            self.shutdown_event.set()
+            raise KeyboardInterrupt
 
-            return False
         elif x == ord("m") or x == ord("M"):
             self.maintenance_mode = not self.maintenance_mode
             self.set_maintenance_mode(self.maintenance_mode)
