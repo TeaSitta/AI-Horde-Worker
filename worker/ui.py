@@ -758,6 +758,8 @@ class TerminalUI:
             self.model_queue = int(models_json[0].get("jobs", 0))
             self.model_eta = models_json[0].get("eta", 0)
             self.model_threads = models_json[0].get("count", 0)
+        except IndexError:
+            return
         except Exception as ex:
             logger.warning(str(ex))
 
