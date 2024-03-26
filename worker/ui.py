@@ -70,7 +70,7 @@ class TerminalUI:
     # Refresh interval in seconds to call API for remote worker stats
     REMOTE_STATS_REFRESH = 5
     # Refresh interval in seconds for API calls to get overall ai horde stats
-    REMOTE_HORDE_STATS_REFRESH = 40
+    REMOTE_HORDE_STATS_REFRESH = 30
 
     COLOUR_RED = 1
     COLOUR_GREEN = 2
@@ -95,7 +95,6 @@ class TerminalUI:
 
     def __init__(self, bridge_data, shutdown_event) -> None:
         self.shutdown_event = shutdown_event
-        self.should_stop = False
         self.bridge_data = bridge_data
         self.worker_name = self.bridge_data.worker_name
         if hasattr(self.bridge_data, "horde_url"):
@@ -293,9 +292,9 @@ class TerminalUI:
         self.queued_requests = "Pending"
         self.worker_count = "Pending"
         self.thread_count = "Pending"
-        self.queued_mps = "Pending"
-        self.last_minute_mps = "Pending"
-        self.queue_time = "Pending"
+        # self.queued_mps = "Pending"
+        # self.last_minute_mps = "Pending"
+        # self.queue_time = "Pending"
         self.model_queue = "Pending"
         self.model_eta = "Pending"
         self.model_threads = "Pending"
@@ -341,8 +340,8 @@ class TerminalUI:
         # ║  Threads: 6               Worker Kudos: 9385297         Total Jobs: 701138   ║
         # ║  Context: 8192            Total Uptime: 34d 19h 14m    Jobs Failed: 972      ║
         # ╟───Horde──────────────────────────────────────────────────────────────────────╢
-        # ║  Model Queue: 43           Jobs Queued: 99999           Queue Time: 99m      ║
-        # ║    Model ETA: 120s       Total Workers: 1000         Total Threads: 1000     ║
+        # ║  Model Queue: 43           Jobs Queued: 99999        Total Workers: 100      ║
+        # ║    Model ETA: 120s                                   Total Threads: 1000     ║
         # ║ Model Threads: 8                                                             ║
         # ║     (m)aintenance  (s)ource  (d)ebug  (p)ause log  (a)lerts  (r)eset  (q)uit ║
         # ╙──────────────────────────────────────────────────────────────────────────────╜
@@ -411,8 +410,9 @@ class TerminalUI:
         label(row_horde + 2, col_left + 5, "Model ETA:")
         label(row_horde + 3, col_left + 5, "Model Threads:")
         label(row_horde + 1, col_mid, "Total Jobs Queued:")
-        label(row_horde + 2, col_mid, "Total Workers:")
-        label(row_horde + 1, col_right, "Total Queue Time:")
+        # label(row_horde + 2, col_mid, "Total Workers:")
+        label(row_horde + 1, col_right, "Total Workers:")
+        # label(row_horde + 1, col_right, "Total Queue Time:")
         label(row_horde + 2, col_right, "Total Threads:")
 
         self.print(self.main, row_local + 1, col_left, f"{self.get_uptime()}")
@@ -522,15 +522,16 @@ class TerminalUI:
 
         self.print(self.main, row_horde + 1, col_left + 5, f"{self.model_queue} jobs")
         self.print(self.main, row_horde + 1, col_mid, f"{self.queued_requests}")
-        self.print(
-            self.main,
-            row_horde + 1,
-            col_right,
-            f"{self.seconds_to_timestring(self.queue_time)}",
-        )
+        # self.print(
+        #     self.main,
+        #     row_horde + 1,
+        #     col_right,
+        #     f"{self.seconds_to_timestring(self.queue_time)}",
+        # )
+        self.print(self.main, row_horde + 1, col_right, f"{self.worker_count}")
 
         self.print(self.main, row_horde + 2, col_left + 5, f"{self.model_eta}s")
-        self.print(self.main, row_horde + 2, col_mid, f"{self.worker_count}")
+        # self.print(self.main, row_horde + 2, col_mid, f"{self.worker_count}")
         self.print(self.main, row_horde + 2, col_right, f"{self.thread_count}")
 
         self.print(self.main, row_horde + 3, col_left + 5, f"{self.model_threads}")
@@ -694,6 +695,7 @@ class TerminalUI:
             logger.error(f"Maintenance mode failed: {res.text}")
 
     def get_remote_worker_info(self) -> None:
+        """API call for worker ID (Maint mode, kudos, uptime, etc)"""
         try:
             if not self.worker_id:
                 return
@@ -729,6 +731,33 @@ class TerminalUI:
             self.total_uptime = data.get("uptime", 0)
             self.total_failed_jobs = data.get("uncompleted_jobs", 0)
             self.modelname = data.get("models")[0]
+        except Exception as ex:
+            logger.warning(str(ex))
+
+    def get_remote_horde_stats(self) -> None:
+        try:
+            url = f"{self.url}/api/v2/status/performance"
+            try:
+                r = requests.get(
+                    url,
+                    headers={"client-agent": TerminalUI.CLIENT_AGENT},
+                    timeout=10,
+                )
+            except requests.exceptions.Timeout:
+                pass
+            except requests.exceptions.RequestException:
+                return
+            if not r.ok:
+                logger.warning(f"Calling AI Horde stats API failed ({r.status_code})")
+                return
+
+            data = r.json()
+            self.queued_requests = int(data.get("queued_requests", 0))
+            self.worker_count = int(data.get("worker_count", 1))
+            self.thread_count = int(data.get("thread_count", 0))
+            # self.queued_mps = int(data.get("queued_megapixelsteps", 0))
+            # self.last_minute_mps = int(data.get("past_minute_megapixelsteps", 0))
+            # self.queue_time = (self.queued_mps / self.last_minute_mps) * 60
 
             # Get model queue stats
             if self.modelname == "Pending" or not self.worker_id:
@@ -758,33 +787,8 @@ class TerminalUI:
             self.model_queue = int(models_json[0].get("jobs", 0))
             self.model_eta = models_json[0].get("eta", 0)
             self.model_threads = models_json[0].get("count", 0)
-        except Exception as ex:
-            logger.warning(str(ex))
-
-    def get_remote_horde_stats(self) -> None:
-        try:
-            url = f"{self.url}/api/v2/status/performance"
-            try:
-                r = requests.get(
-                    url,
-                    headers={"client-agent": TerminalUI.CLIENT_AGENT},
-                    timeout=10,
-                )
-            except requests.exceptions.Timeout:
-                pass
-            except requests.exceptions.RequestException:
-                return
-            if not r.ok:
-                logger.warning(f"Calling AI Horde stats API failed ({r.status_code})")
-                return
-
-            data = r.json()
-            self.queued_requests = int(data.get("queued_requests", 0))
-            self.worker_count = int(data.get("worker_count", 1))
-            self.thread_count = int(data.get("thread_count", 0))
-            self.queued_mps = int(data.get("queued_megapixelsteps", 0))
-            self.last_minute_mps = int(data.get("past_minute_megapixelsteps", 0))
-            self.queue_time = (self.queued_mps / self.last_minute_mps) * 60
+        except IndexError:
+            return
         except Exception as ex:
             logger.warning(str(ex))
 
@@ -879,24 +883,23 @@ class TerminalUI:
             try:
                 self.initialise()
                 while True:
-                    if self.should_stop:
+                    if self.shutdown_event.is_set():
                         return
                     if not self.poll():
                         return
                     time.sleep(1 / self.gpu.samples_per_second)
             except KeyboardInterrupt:
-                self.should_stop = True
+                self.shutdown_event.set()
                 return
             except Exception as exc:
                 logger.error(str(exc))
 
     def run(self) -> None:
-        self.should_stop = False
         curses.wrapper(self.main_loop)
         self.stop()
 
     def stop(self) -> None:
-        self.should_stop = True
+        self.shutdown_event.set()
         # Restore the terminal
         sys.stdout = self._bck_stdout
         sys.stderr = self._bck_stderr

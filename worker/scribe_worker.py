@@ -17,7 +17,6 @@ class ScribeWorker:
         self.run_count = 0
         self.last_config_reload = 0
         self.is_daemon = False
-        self.should_stop = False
         self.should_restart = False
         self.consecutive_executor_restarts = 0
         self.consecutive_failed_jobs = 0
@@ -51,7 +50,7 @@ class ScribeWorker:
 
     @logger.catch(reraise=True)
     def stop(self) -> None:
-        self.should_stop = True
+        self.shutdown_event.set()
         self.ui_class.stop()
         logger.info("Stop methods called")
 
@@ -70,19 +69,17 @@ class ScribeWorker:
                 self.run_count = 0
 
             with ThreadPoolExecutor(max_workers=self.bridge_data.max_threads) as self.executor:
-                while not self.should_stop:
+                while not self.shutdown_event.is_set():
                     if self.should_restart:
                         self.executor.shutdown(wait=False)
                         self.should_restart = True
                         break
                     try:
                         if self.shutdown_event.is_set():
-                            self.should_stop = True
                             self.executor.shutdown(wait=True)
                             break
                         self.process_jobs()
                     except KeyboardInterrupt:  # This is what exits on old ver
-                        self.should_stop = True
                         self.shutdown_event.set()
                         break
                 if self.shutdown_event.is_set() or self.soft_restarts > 15:
@@ -92,7 +89,6 @@ class ScribeWorker:
                     if self.is_daemon:
                         return
                     else:  # noqa: RET505
-                        logger.warning("Waiting for jobs to finish before shutting down")
                         break
 
     def process_jobs(self) -> None:
@@ -113,12 +109,7 @@ class ScribeWorker:
         for job_thread, start_time, job in self.running_jobs:
             self.check_running_job_status(job_thread, start_time, job)
 
-        if (
-            self.should_restart
-            or self.should_stop
-            or self.shutdown_event.is_set()
-            or not self.bridge_data.kai_available
-        ):
+        if self.should_restart or self.shutdown_event.is_set() or not self.bridge_data.kai_available:
             return
         # Give the CPU a break
         time.sleep(0.02)
@@ -171,7 +162,6 @@ class ScribeWorker:
         else:
             logger.debug("No new job to start")
         if self.shutdown_event.is_set():
-            self.should_stop = True
             return False
         return True
 
@@ -189,13 +179,13 @@ class ScribeWorker:
                     self.out_of_memory_jobs += 1
                 if self.out_of_memory_jobs >= 10:
                     logger.critical("Too many jobs have failed with out of memory error. Aborting!")
-                    self.should_stop = True
+                    self.shutdown_event.set()
                     return
                 if self.consecutive_executor_restarts > 0:
                     logger.critical(
                         "Worker keeps crashing after thread executor restart. " "Cannot be salvaged. Aborting!",
                     )
-                    self.should_stop = True
+                    self.shutdown_event.set()
                     return
                 self.consecutive_failed_jobs += 1
                 if self.consecutive_failed_jobs >= 5:
