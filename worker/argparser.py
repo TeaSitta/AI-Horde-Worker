@@ -74,7 +74,7 @@ arg_parser.add_argument(
     "--disable_ui",
     action="store_true",
     required=False,
-    help=("Disable the curses terminal UI and only display log lines"),
+    help=("Disable the curses terminal UI and only display logging"),
 )
 
 args = arg_parser.parse_args()
