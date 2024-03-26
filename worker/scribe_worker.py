@@ -107,14 +107,18 @@ class ScribeWorker:
             self.add_job_to_queue()
 
         while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
-            # Need to put kai checker here to check durring maintenance mode
             pass
 
             # Check if any jobs are done
         for job_thread, start_time, job in self.running_jobs:
             self.check_running_job_status(job_thread, start_time, job)
 
-        if self.should_restart or self.should_stop or self.shutdown_event.is_set():
+        if (
+            self.should_restart
+            or self.should_stop
+            or self.shutdown_event.is_set()
+            or not self.bridge_data.kai_available
+        ):
             return
         # Give the CPU a break
         time.sleep(0.02)
@@ -176,10 +180,10 @@ class ScribeWorker:
         runtime = time.monotonic() - start_time
         if job_thread.done():
             if job_thread.exception(timeout=1) or job.is_faulted():
+                self.bridge_data.kai_available = False
                 if job_thread.exception(timeout=1):
                     logger.error("Job failed with exception, {}", job_thread.exception())
                     logger.exception(job_thread.exception())
-                    self.bridge_data.kai_available = False
                 if job.is_out_of_memory():
                     logger.error("Job failed with out of memory error")
                     self.out_of_memory_jobs += 1

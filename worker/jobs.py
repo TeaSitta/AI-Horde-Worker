@@ -330,6 +330,7 @@ class ScribeHordeJob(HordeJob):
             logger.trace(trace)
             self.status = JobStatus.FAULTED
             self.start_submit_thread()
+            self.bridge_data.kai_available = False
             return
         self.start_submit_thread()
 
