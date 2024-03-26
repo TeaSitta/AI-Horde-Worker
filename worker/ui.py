@@ -68,9 +68,9 @@ class TerminalUI:
     }
 
     # Refresh interval in seconds to call API for remote worker stats
-    REMOTE_STATS_REFRESH = 20
+    REMOTE_STATS_REFRESH = 5
     # Refresh interval in seconds for API calls to get overall ai horde stats
-    REMOTE_HORDE_STATS_REFRESH = 60
+    REMOTE_HORDE_STATS_REFRESH = 40
 
     COLOUR_RED = 1
     COLOUR_GREEN = 2
@@ -93,7 +93,8 @@ class TerminalUI:
 
     CLIENT_AGENT = f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
-    def __init__(self, bridge_data) -> None:
+    def __init__(self, bridge_data, shutdown_event) -> None:
+        self.shutdown_event = shutdown_event
         self.should_stop = False
         self.bridge_data = bridge_data
         self.worker_name = self.bridge_data.worker_name
@@ -116,8 +117,8 @@ class TerminalUI:
         self.output = DequeOutputCollector()
         self.worker_id = None
         threading.Thread(target=self.load_worker_id, daemon=True).start()
-        self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 15)
-        self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 20)
+        self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 3)
+        self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 3)
         self.maintenance_mode = False
         self.gpu = GPUInfo()
         self.gpu.samples_per_second = 5
@@ -669,6 +670,8 @@ class TerminalUI:
                         logger.warning("Waiting for Worker ID from the AI Horde")
                 else:
                     logger.warning(f"Failed to get worker ID {r.status_code}")
+                if self.shutdown_event.is_set():
+                    break
                 time.sleep(5)
         except Exception as ex:
             logger.warning(str(ex))
@@ -845,9 +848,9 @@ class TerminalUI:
         elif x == ord("r") or x == ord("R"):
             self.reset_stats()
         elif x == ord("q") or x == ord("Q"):
-            self.should_stop = True
+            self.shutdown_event.set()
+            raise KeyboardInterrupt
 
-            return False
         elif x == ord("m") or x == ord("M"):
             self.maintenance_mode = not self.maintenance_mode
             self.set_maintenance_mode(self.maintenance_mode)

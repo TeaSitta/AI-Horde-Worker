@@ -2,12 +2,9 @@
 
 # We need to import the argparser first, as it sets the necessary Switches
 from worker.argparser import args  # noqa: I001
-from worker.utils.set_envs import set_worker_env_vars_from_config
 from worker.bridge_data import BridgeData
 from worker.logger import logger, quiesce_logger, set_logger_verbosity
 from worker.scribe_worker import ScribeWorker
-
-set_worker_env_vars_from_config()  # Get `cache_home` from `bridgeconfig.yaml` into the environment variable
 
 
 def main() -> None:

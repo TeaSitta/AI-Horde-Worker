@@ -33,11 +33,9 @@ class BridgeData:
         self.api_key = os.environ.get("HORDE_API_KEY", "0000000000")
         self.max_threads = int(os.environ.get("HORDE_MAX_THREADS", 1))
         self.queue_size = int(os.environ.get("HORDE_QUEUE_SIZE", 0))
-
         self.stats_output_frequency = int(os.environ.get("STATS_OUTPUT_FREQUENCY", 30))
         self.disable_terminal_ui = os.environ.get("DISABLE_TERMINAL_UI", "false") == "true"
         self.initialized = False
-        self.suppress_speed_warnings = False
         self.kai_available = False
         self.model = None
         self.kai_url = "http://localhost:5000"
@@ -74,6 +72,8 @@ class BridgeData:
             self.max_threads = self.args.max_threads
         if self.args.queue_size:
             self.queue_size = self.args.queue_size
+        if self.args.disable_ui:
+            self.disable_terminal_ui = self.args.disable_ui
         if not self.initialized or previous_api_key != self.api_key:
             try:
                 user_req = requests.get(
@@ -124,4 +124,9 @@ class BridgeData:
             logger.error(f"Server {self.kai_url} is not reachable. Are you sure it's running?")
             self.kai_available = False
             return
+        except requests.exceptions.RequestException as ex:
+            logger.error(f"Error reaching {self.kai_url} - {ex}")
+            self.kai_available = False
+            return
+
         self.kai_available = True

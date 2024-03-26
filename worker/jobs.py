@@ -163,10 +163,6 @@ class HordeJob:
 
                 with contextlib.suppress(ValueError):
                     reward = float(reward)
-                    if time_spent_processing > (reward * 3) and not self.bridge_data.suppress_speed_warnings:
-                        logger.warning(
-                            "This job took longer than expected to process.",
-                        )
 
                 logger.info(
                     f"Submitted job with id {self.current_id} and contributed for {reward:.1f}. "
@@ -334,6 +330,7 @@ class ScribeHordeJob(HordeJob):
             logger.trace(trace)
             self.status = JobStatus.FAULTED
             self.start_submit_thread()
+            self.bridge_data.kai_available = False
             return
         self.start_submit_thread()
 
@@ -407,7 +404,7 @@ class JobPopper:
             logger.warning(f"{self.pop['message']} ({pop_req.status_code})")
             if "errors" in self.pop:
                 logger.warning(f"Detailed Request Errors: {self.pop['errors']}")
-            time.sleep(2)
+            time.sleep(3)
             return None
         return [self.pop]
 
