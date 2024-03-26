@@ -107,6 +107,7 @@ class ScribeWorker:
             self.add_job_to_queue()
 
         while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
+            # Need to put kai checker here to check durring maintenance mode
             pass
 
             # Check if any jobs are done
@@ -155,8 +156,6 @@ class ScribeWorker:
         if self.bridge_data.queue_size == 0:
             if jobs := self.pop_job():
                 job = jobs[0]
-            if self.shutdown_event.is_set():
-                return False
         elif len(self.waiting_jobs) > 0:
             job = self.waiting_jobs.pop(0)
         else:
@@ -167,6 +166,9 @@ class ScribeWorker:
             logger.debug("New job processing")
         else:
             logger.debug("No new job to start")
+        if self.shutdown_event.is_set():
+            self.should_stop = True
+            return False
         return True
 
     def check_running_job_status(self, job_thread, start_time, job) -> None:

@@ -403,7 +403,7 @@ class JobPopper:
             logger.warning(f"{self.pop['message']} ({pop_req.status_code})")
             if "errors" in self.pop:
                 logger.warning(f"Detailed Request Errors: {self.pop['errors']}")
-            time.sleep(2)
+            time.sleep(3)
             return None
         return [self.pop]
 
