@@ -95,7 +95,6 @@ class TerminalUI:
 
     def __init__(self, bridge_data, shutdown_event) -> None:
         self.shutdown_event = shutdown_event
-        self.should_stop = False
         self.bridge_data = bridge_data
         self.worker_name = self.bridge_data.worker_name
         if hasattr(self.bridge_data, "horde_url"):
@@ -884,24 +883,23 @@ class TerminalUI:
             try:
                 self.initialise()
                 while True:
-                    if self.should_stop:
+                    if self.shutdown_event.is_set():
                         return
                     if not self.poll():
                         return
                     time.sleep(1 / self.gpu.samples_per_second)
             except KeyboardInterrupt:
-                self.should_stop = True
+                self.shutdown_event.set()
                 return
             except Exception as exc:
                 logger.error(str(exc))
 
     def run(self) -> None:
-        self.should_stop = False
         curses.wrapper(self.main_loop)
         self.stop()
 
     def stop(self) -> None:
-        self.should_stop = True
+        self.shutdown_event.set()
         # Restore the terminal
         sys.stdout = self._bck_stdout
         sys.stderr = self._bck_stderr
