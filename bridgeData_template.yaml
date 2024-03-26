@@ -25,10 +25,6 @@ max_threads: 1
 queue_size: 0
 
 
-# If you are getting messages about jobs taking too long, you can change this to true if you no longer want to see them
-# Please note, that if you *are* getting these messages, you are serving jobs substantially slower than is ideal.
-suppress_speed_warnings: false
-
 # Disable the terminal GUI, which displays information about the worker and the horde.
 disable_terminal_ui: false
 

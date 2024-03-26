@@ -68,9 +68,9 @@ class TerminalUI:
     }
 
     # Refresh interval in seconds to call API for remote worker stats
-    REMOTE_STATS_REFRESH = 20
+    REMOTE_STATS_REFRESH = 5
     # Refresh interval in seconds for API calls to get overall ai horde stats
-    REMOTE_HORDE_STATS_REFRESH = 60
+    REMOTE_HORDE_STATS_REFRESH = 40
 
     COLOUR_RED = 1
     COLOUR_GREEN = 2
@@ -93,8 +93,8 @@ class TerminalUI:
 
     CLIENT_AGENT = f"AI Horde Worker:{RELEASE_VERSION}:https://github.com/TeaSitta/AI-Horde-Worker"
 
-    def __init__(self, bridge_data) -> None:
-        self.shutdown_event = threading.Event()
+    def __init__(self, bridge_data, shutdown_event) -> None:
+        self.shutdown_event = shutdown_event
         self.should_stop = False
         self.bridge_data = bridge_data
         self.worker_name = self.bridge_data.worker_name
@@ -117,8 +117,8 @@ class TerminalUI:
         self.output = DequeOutputCollector()
         self.worker_id = None
         threading.Thread(target=self.load_worker_id, daemon=True).start()
-        self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 15)
-        self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 20)
+        self.last_stats_refresh = time.time() - (TerminalUI.REMOTE_STATS_REFRESH - 3)
+        self.last_horde_stats_refresh = time.time() - (TerminalUI.REMOTE_HORDE_STATS_REFRESH - 3)
         self.maintenance_mode = False
         self.gpu = GPUInfo()
         self.gpu.samples_per_second = 5

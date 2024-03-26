@@ -163,10 +163,6 @@ class HordeJob:
 
                 with contextlib.suppress(ValueError):
                     reward = float(reward)
-                    if time_spent_processing > (reward * 3) and not self.bridge_data.suppress_speed_warnings:
-                        logger.warning(
-                            "This job took longer than expected to process.",
-                        )
 
                 logger.info(
                     f"Submitted job with id {self.current_id} and contributed for {reward:.1f}. "

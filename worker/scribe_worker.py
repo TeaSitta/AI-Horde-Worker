@@ -41,7 +41,7 @@ class ScribeWorker:
 
         from worker.ui import TerminalUI
 
-        self.ui_class = TerminalUI(self.bridge_data)
+        self.ui_class = TerminalUI(self.bridge_data, self.shutdown_event)
         self.ui = threading.Thread(target=self.ui_class.run, daemon=True)
         self.ui.start()
 
@@ -58,7 +58,6 @@ class ScribeWorker:
     @logger.catch(reraise=True)
     def start(self) -> None:
         self.reload_data()
-        self.exit_rc = 1
 
         # Moved out of the loop to capture failure across soft-restarts
         self.consecutive_failed_jobs = 0
@@ -77,23 +76,27 @@ class ScribeWorker:
                         self.should_restart = True
                         break
                     try:
+                        if self.shutdown_event.is_set():
+                            self.should_stop = True
+                            self.executor.shutdown(wait=True)
+                            break
                         self.process_jobs()
                     except KeyboardInterrupt:  # This is what exits on old ver
                         self.should_stop = True
-                        self.exit_rc = 0
+                        self.shutdown_event.set()
                         break
-                if self.should_stop or self.soft_restarts > 15:
+                if self.shutdown_event.is_set() or self.soft_restarts > 15:
                     if self.soft_restarts > 15:
                         logger.error("Too many soft restarts, exiting the worker. Please review your config.")
                         logger.error("You can try asking for help in the official discord if this persists.")
-                    logger.init("Worker shutting down", status="Shutting Down")
                     if self.is_daemon:
                         return
                     else:  # noqa: RET505
+                        logger.warning("Waiting for jobs to finish before shutting down")
                         break
 
     def process_jobs(self) -> None:
-        if time.time() - self.last_config_reload > 60:
+        if time.time() - self.last_config_reload > 30:
             self.reload_bridge_data()
         if not self.can_process_jobs():
             time.sleep(3)
@@ -104,16 +107,16 @@ class ScribeWorker:
             self.add_job_to_queue()
 
         while len(self.running_jobs) < self.bridge_data.max_threads and self.start_job():
-            # if not self.in_notebook and not self.ui.is_alive():
-            #     self.should_stop = True
+            pass
 
             # Check if any jobs are done
-            for job_thread, start_time, job in self.running_jobs:
-                self.check_running_job_status(job_thread, start_time, job)
-                if self.should_restart or self.should_stop:
-                    break
-            # Give the CPU a break
-            time.sleep(0.02)
+        for job_thread, start_time, job in self.running_jobs:
+            self.check_running_job_status(job_thread, start_time, job)
+
+        if self.should_restart or self.should_stop or self.shutdown_event.is_set():
+            return
+        # Give the CPU a break
+        time.sleep(0.02)
 
     def can_process_jobs(self):
         """This function returns true when this worker can start polling for jobs from the AI Horde
@@ -152,7 +155,7 @@ class ScribeWorker:
         if self.bridge_data.queue_size == 0:
             if jobs := self.pop_job():
                 job = jobs[0]
-            if self.should_stop:
+            if self.shutdown_event.is_set():
                 return False
         elif len(self.waiting_jobs) > 0:
             job = self.waiting_jobs.pop(0)
@@ -174,6 +177,7 @@ class ScribeWorker:
                 if job_thread.exception(timeout=1):
                     logger.error("Job failed with exception, {}", job_thread.exception())
                     logger.exception(job_thread.exception())
+                    self.bridge_data.kai_available = False
                 if job.is_out_of_memory():
                     logger.error("Job failed with out of memory error")
                     self.out_of_memory_jobs += 1

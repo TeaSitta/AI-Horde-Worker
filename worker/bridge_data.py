@@ -36,7 +36,6 @@ class BridgeData:
         self.stats_output_frequency = int(os.environ.get("STATS_OUTPUT_FREQUENCY", 30))
         self.disable_terminal_ui = os.environ.get("DISABLE_TERMINAL_UI", "false") == "true"
         self.initialized = False
-        self.suppress_speed_warnings = False
         self.kai_available = False
         self.model = None
         self.kai_url = "http://localhost:5000"
