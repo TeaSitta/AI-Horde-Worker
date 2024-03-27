@@ -655,7 +655,7 @@ class TerminalUI:
                         timeout=5,
                     )
                 except requests.exceptions.Timeout:
-                    logger.warning("Timeout while waiting for worker ID from API")
+                    logger.warning(f"Timeout while waiting for worker ID from {self.url}")
                 except requests.exceptions.RequestException as ex:
                     logger.error(f"Failed to get worker ID {ex}")
                 if r.ok:
@@ -668,7 +668,9 @@ class TerminalUI:
                         logger.warning(f"Found worker ID {self.worker_id}")
                     else:
                         # Our worker is not yet in the worker results from the API (cache delay)
-                        logger.warning("Waiting for Worker ID from the AI Horde")
+                        logger.warning(
+                            f"Waiting for Worker ID from {self.url} (Maintenance mode toggle currently unavailable)",
+                        )
                 else:
                     logger.warning(f"Failed to get worker ID {r.status_code}")
                 if self.shutdown_event.is_set():
