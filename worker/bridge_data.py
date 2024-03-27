@@ -35,6 +35,7 @@ class BridgeData:
         self.queue_size = int(os.environ.get("HORDE_QUEUE_SIZE", 0))
         self.stats_output_frequency = int(os.environ.get("STATS_OUTPUT_FREQUENCY", 30))
         self.disable_terminal_ui = os.environ.get("DISABLE_TERMINAL_UI", "false") == "true"
+        self.ui_show_n_gpus = None
         self.initialized = False
         self.kai_available = False
         self.model = None
@@ -74,6 +75,9 @@ class BridgeData:
             self.queue_size = self.args.queue_size
         if self.args.disable_ui:
             self.disable_terminal_ui = self.args.disable_ui
+        if self.args.gpu_display and self.args.gpu_display > 0:
+            self.ui_show_n_gpus = self.args.gpu_display
+
         if not self.initialized or previous_api_key != self.api_key:
             try:
                 user_req = requests.get(
