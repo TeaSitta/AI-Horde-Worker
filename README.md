@@ -42,11 +42,11 @@ Install the dependancies with `pip install -r requirements.txt -U`
 
 From the AI-Horde-Worker directory, run `python horde_scribe_bridge.py`
 
-After starting the bridge your worker should be in maintenance mode.
+If your KoboldAI inference API is reachable the bridge should create a worker entry on the Horde API with the
+worker name you chose and then start to fetch and serve jobs to your inference engine.
 
-If your KoboldAI inference API is reachable you should see `This worker has been put into maintenance mode by its owner (403)` in the console.
-
-Press m to exit maintenance mode, it may take a few moments after first starting the bridge for the worker to begin fetching jobs from the horde.
+If you should see `This worker has been put into maintenance mode by its owner (403)` in the console, 
+press m to exit maintenance mode(UI mode only), it may take a few moments after first starting the bridge for the worker to begin fetching jobs from the horde.
 
 # Stopping the bridge
 
