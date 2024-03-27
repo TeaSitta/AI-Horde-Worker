@@ -45,14 +45,14 @@ From the AI-Horde-Worker directory, run `python horde_scribe_bridge.py`
 If your KoboldAI inference API is reachable the bridge should create a worker entry on the Horde API with the
 worker name you chose and then start to fetch and serve jobs to your inference engine.
 
-If you see `This worker has been put into maintenance mode by its owner (403)` in the console, 
+If you see `This worker has been put into maintenance mode by its owner (403)` in the console,
 press m to exit maintenance mode(UI mode only), it may take a few moments after first starting the bridge for the worker to begin fetching jobs from the horde.
 
 # Stopping the bridge
 
 * UI mode: First put your worker into maintenance mode if you plan to continue using the UI.
 * Wait until you see no more jobs running then press the `q` key.
-  
+
 * UI Disabled: Simply press `Ctrl+C` once, the application will finish any currently running jobs before exiting.
 
 # Updating
@@ -76,6 +76,8 @@ The following commandline arguments are available when you run `python horde_scr
 `--kai_url "[http://172.0.0.1]"` The backend url for your KoboldAI API inference engine.
 
 `--max_threads [number]` The maximum amount of jobs to bridge between the API and inference engine at any time.
+
+`-g` or `--gpu_display [number]` Sets the number of GPUs to display on the UI (Default = number of gpus)
 
 `--disable_ui`  Disables the curses based console UI, displays only log messages instead.
 

@@ -24,7 +24,7 @@ arg_parser.add_argument(
     action="store",
     required=False,
     type=str,
-    help="The SH Horde URL. Where the worker will pickup prompts and send the finished generations.",
+    help="The Horde API URL. Where the worker will pickup jobs and send the finished generations.",
 )
 arg_parser.add_argument(
     "--max_threads",
@@ -60,15 +60,15 @@ arg_parser.add_argument(
 )
 arg_parser.add_argument(
     "--log_file",
-    action="store_true",
     default=False,
     help="If specified will dump the log to the specified file",
 )
 arg_parser.add_argument(
-    "--kai_url",
-    action="store",
+    "-g",
+    "--gpu_display",
+    type=int,
     required=False,
-    help="The URL at which the KoboldAI Client API can be found.",
+    help=("Display X number of GPUs in the UI"),
 )
 arg_parser.add_argument(
     "--disable_ui",
@@ -76,5 +76,10 @@ arg_parser.add_argument(
     required=False,
     help=("Disable the curses terminal UI and only display logging"),
 )
-
+arg_parser.add_argument(
+    "--kai_url",
+    action="store",
+    required=False,
+    help="The URL at which the KoboldAI Client API can be found.",
+)
 args = arg_parser.parse_args()

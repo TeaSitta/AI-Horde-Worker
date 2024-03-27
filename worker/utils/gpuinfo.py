@@ -14,7 +14,6 @@ class GPUInfo:
         # Look out for device env var hack
         self.forced_gpu = os.getenv("CUDA_VISIBLE_DEVICES", None) is not None
         self.device = int(os.getenv("CUDA_VISIBLE_DEVICES", 0))
-        self.ui_show_n_gpus = int(os.getenv("AIWORKER_UI_SHOW_N_GPUS", 1))
 
     # Return a value from the given dictionary supporting dot notation
     def get(self, data, key, default=""):
@@ -39,14 +38,11 @@ class GPUInfo:
         if self.forced_gpu:
             return 1
 
-        if self.ui_show_n_gpus:
-            return self.ui_show_n_gpus
-
         with contextlib.suppress(Exception):
             nvsmi = nvidia_smi.getInstance()
             data = nvsmi.DeviceQuery()
             return len(data.get("gpu", [None]))
-        return 0
+        return 1
 
     def _get_gpu_data(self, device=0) -> dict:
         with contextlib.suppress(Exception):

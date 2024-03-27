@@ -332,9 +332,9 @@ class TerminalUI:
         # ║ pop time: 0.58s        Kudos Per Hour: 5283         Jobs Per Hour: 524966    ║
         # ║    Model: Llama2...          Warnings: 9999                Errors: 10        ║
         # ║ CPU Load: 99% (99%)          Free RAM: 2 GB (10%)       Job Fetch: 2.32s     ║
-        # ╟─NVIDIA GeForce RTX 3090──────────────────────────────────────────────────────╢
+        # ╟─NVIDIA GeForce RTX 6090──────────────────────────────────────────────────────╢
         # ║    Load: 100% (90%)        VRAM Total: 24576MiB         Fan Speed: 100%      ║
-        # ║    Temp: 100C (58C)         VRAM Used: 16334MiB           PCI Gen: 5         ║
+        # ║    Temp: 100C (58C)         VRAM Used: 16334MiB           PCI Gen: 6         ║
         # ║   Power: 460W (178W)        VRAM Free: 8241MiB          PCI Width: 32x       ║
         # ╟─Worker───────────────────────────────────────────────────────────────────────╢
         # ║  Threads: 6               Worker Kudos: 9385297         Total Jobs: 701138   ║
@@ -352,7 +352,7 @@ class TerminalUI:
         col_right = self.width - 12
 
         # How many GPUs are we using?
-        num_gpus = self.gpu.get_num_gpus()
+        num_gpus = self.bridge_data.ui_show_n_gpus if self.bridge_data.ui_show_n_gpus else self.gpu.get_num_gpus()
 
         # Define rows on which sections start
         row_local = 0

@@ -24,6 +24,8 @@ max_threads: 1
 # Recommended to keep no higher than 1
 queue_size: 0
 
+# Force the UI to display set number of GPUs. Minimum = 1  Default = display all GPUs.
+# gpu_display: 1
 
 # Disable the terminal GUI, which displays information about the worker and the horde.
 disable_terminal_ui: false
