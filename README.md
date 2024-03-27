@@ -61,3 +61,26 @@ Use this approach if you cloned the original repository using `git clone`
 1. Run `git pull`
 1. If git tells you the `requirements.txt` file has been updated, run `pip install -r requirements.txt -U`
 1. Run `horde_scribe_bridge` script as usual.
+
+
+# Arguments
+
+The following commandline arguments are available when you run `python horde_scribe_bridge.py`
+
+`-n` or `--worker_name "[worker name]"` The name of your worker instance (multiple worker names can be registered under a single API key).
+
+`a` or `--api_key "[api key]"` Your Horde API key used to authenticate to your account.
+
+`--kai_url "[http://172.0.0.1]"` The backend url for your KoboldAI API inference engine.
+
+`--max_threads [number]` The maximum amount of jobs to bridge between the API and inference engine at any time.
+
+`--disable_ui`  Disables the curses based console UI, displays only log messages instead.
+
+`--queue_size [number]` The number of additional jobs to fetch from the Horde and queue until a thread becomes available (Default = 0, more than 1 should be unnessesary)
+
+`-q` or `--quiet` Decreases the amount of logging seen
+
+`-v` or `--verbosity` Logging level:
+
+`-u` or `--horde_url "[http://aihorde.net]"` The horde API url to use (defaults to aihorde.net)
