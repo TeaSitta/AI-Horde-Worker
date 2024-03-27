@@ -69,7 +69,7 @@ The following commandline arguments are available when you run `python horde_scr
 
 `-n` or `--worker_name "[worker name]"` The name of your worker instance (multiple worker names can be registered under a single API key).
 
-`a` or `--api_key "[api key]"` Your Horde API key used to authenticate to your account.
+`-a` or `--api_key "[api key]"` Your Horde API key used to authenticate to your account.
 
 `--kai_url "[http://172.0.0.1]"` The backend url for your KoboldAI API inference engine.
 
