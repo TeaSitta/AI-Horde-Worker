@@ -1,5 +1,7 @@
 # AI Horde Worker - `Scribe only fork`
-This repository acts as a bridge between a KoboldAI compatible LLM inference API (Such as KoboldAI-united or aphrodite-engine) and the AI Horde.
+This repository acts as a bridge between a KoboldAI compatible LLM inference API (Primarily aphrodite-engine) and the AI Horde.
+
+If you are using kobold.cpp please use the integrated horde worker option instead.
 
 ## Important Note:
 -This repository is ONLY for text(scribe) workers.
@@ -8,6 +10,9 @@ For horde *image generation* use [horde-worker-reGen](https://github.com/Haidra-
 
 For horde *Alchemy* or *scribe* on *Windows* use the old [AI-HORDE-WORKER](https://github.com/Haidra-Org/AI-Horde-Worker)
 
+# Requirements
+
+Python 3.10 or above and the PIP package manager. A python virtual environment such as vevn is optional but recommended.
 
 # Installing
 
