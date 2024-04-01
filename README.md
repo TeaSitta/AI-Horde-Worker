@@ -1,5 +1,5 @@
 # AI Horde Worker - `Scribe only fork`
-This repository acts as a bridge between a KoboldAI compatible LLM inference API (Primarily aphrodite-engine) and the AI Horde.
+This repository acts as a bridge between a local KoboldAI compatible LLM API (Primarily aphrodite-engine) and the AI Horde.
 
 If you are using kobold.cpp please use the integrated horde worker option instead.
 
