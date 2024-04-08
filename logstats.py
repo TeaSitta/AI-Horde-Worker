@@ -122,7 +122,7 @@ class LogStats:
                             self.gendata["Sent Payload"][2],
                         ]
 
-                    # Match for job submission kudos and processing time
+                    # Match for job submission kudos and processing time ( BROKEN, FIX ME ! )
                     if regex := JOB_SUB_TIME_REGEX.match(line):
                         kudos = regex.group(2)
                         proc = regex.group(4)
