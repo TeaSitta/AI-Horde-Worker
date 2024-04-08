@@ -4,13 +4,14 @@ import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+from worker.bridge_data import BridgeData
 from worker.jobs import ScribeHordeJob, ScribePopper
 from worker.logger import logger
 from worker.stats import bridge_stats
 
 
 class ScribeWorker:
-    def __init__(self, this_bridge_data) -> None:
+    def __init__(self, this_bridge_data: BridgeData) -> None:
         self.bridge_data = this_bridge_data
         self.running_jobs = []
         self.waiting_jobs = []

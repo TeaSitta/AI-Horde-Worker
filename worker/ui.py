@@ -713,8 +713,8 @@ class TerminalUI:
             except requests.exceptions.Timeout:
                 logger.warning("Worker info API failed to respond in time")
                 return
-            except requests.exceptions.RequestException:
-                logger.warning("Worker info API request failed {ex}")
+            except requests.exceptions.RequestException as ex:
+                logger.warning(f"Worker info API request failed {ex}")
                 return
             if not r.ok:
                 logger.warning(

@@ -1,6 +1,7 @@
-# pop-stats.py
-# Calculate node pop stats from the local worker log file.
-# Usage: pop-stats.py [-h] [--today] [--yesterday]
+# logstats.py
+# Calculate node pop and job request stats from the local worker log files.
+# Usage: logstats.py [-h] [--today] [--yesterday]
+
 import argparse
 import datetime
 import glob
@@ -39,7 +40,7 @@ class LogStats:
             "Context Window": [float(0), 0, "tokens"],
             "Prompt Size": [float(0), 0, "chars"],
             "Sent Payload": [float(0), 0, "KB"],
-            "Kudos": [float(0), 0, "kudos"],
+            "Kudos": [0, 0, "kudos"],
             "Generation Time": [float(0), 0, "s"],
         }
 
@@ -127,7 +128,7 @@ class LogStats:
                         proc = regex.group(4)
 
                         self.gendata["Kudos"] = [
-                            self.gendata["Kudos"][0] + float(kudos),
+                            self.gendata["Kudos"][0] + int(kudos),
                             self.gendata["Kudos"][1] + 1,
                             self.gendata["Kudos"][2],
                         ]
@@ -157,7 +158,7 @@ class LogStats:
 
         for k, v in self.gendata.items():
             tf = f"{round(v[0]):,}"
-            af = f"{round(v[0] / v[1]):,}"
+            af = f"{round(v[0] / v[1] if v[1] else 0):,}"
 
             print("{:<15} {} {:<12} {:>15} {} {}".format(k, "Total:", tf, "Job Average:", af, v[2]))
 
