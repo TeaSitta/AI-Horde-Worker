@@ -6,4 +6,4 @@ loguru
 pyyaml
 requests
 psutil
-pynvml
+pynvml == 11.5.0
